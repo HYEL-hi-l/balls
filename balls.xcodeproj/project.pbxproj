@@ -6,38 +6,64 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9E7A6FAF2C9A2D710039C592 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FAE2C9A2D710039C592 /* GameScene.swift */; };
+		9E7A6FB02C9A2D710039C592 /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = 9E7A6FAB2C9A2D710039C592 /* Actions.sks */; };
+		9E7A6FB12C9A2D710039C592 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 9E7A6FAD2C9A2D710039C592 /* GameScene.sks */; };
+		9E7A6FB22C9A2D710039C592 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E7A6FAC2C9A2D710039C592 /* Assets.xcassets */; };
+		9E7A6FBE2C9A2E140039C592 /* GameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FBD2C9A2E130039C592 /* GameContext.swift */; };
+		9E7A6FD02C9A345E0039C592 /* StartState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FCA2C9A30980039C592 /* StartState.swift */; };
+		9E7A6FD12C9A346D0039C592 /* GameOverState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FCB2C9A30A00039C592 /* GameOverState.swift */; };
+		9E7A6FD22C9A346D0039C592 /* ShootingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FCD2C9A30C60039C592 /* ShootingState.swift */; };
+		9E7A6FD32C9A346D0039C592 /* ResolveShotState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FCC2C9A30AA0039C592 /* ResolveShotState.swift */; };
+		9E7A6FD42C9A346D0039C592 /* IdleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FCE2C9A30DE0039C592 /* IdleState.swift */; };
+		9E7A6FD62C9A34720039C592 /* PhysicsCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FC72C9A2FE40039C592 /* PhysicsCategory.swift */; };
+		9E7A6FD72C9A347A0039C592 /* GameInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FC82C9A30030039C592 /* GameInfo.swift */; };
+		9E7A6FD82C9A347A0039C592 /* LayoutInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FC92C9A300A0039C592 /* LayoutInfo.swift */; };
+		9E7A6FD92C9A347F0039C592 /* BallNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FC32C9A2FA50039C592 /* BallNode.swift */; };
+		9E7A6FDA2C9A347F0039C592 /* BlockNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FC42C9A2FAC0039C592 /* BlockNode.swift */; };
+		9E7A6FDB2C9A347F0039C592 /* PowerUpNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FC52C9A2FBB0039C592 /* PowerUpNode.swift */; };
+		9E7A6FDD2C9A36490039C592 /* BallType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FDC2C9A36460039C592 /* BallType.swift */; };
+		9E7A6FDF2C9A36CF0039C592 /* TargetLineNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FDE2C9A36CB0039C592 /* TargetLineNode.swift */; };
+		9E7A6FE12C9A36DD0039C592 /* GameStatsNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FE02C9A36DA0039C592 /* GameStatsNode.swift */; };
+		9E7A6FE32C9A36E60039C592 /* BackgroundNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FE22C9A36E30039C592 /* BackgroundNode.swift */; };
+		9E7A6FE52C9A37110039C592 /* ballsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FE42C9A370D0039C592 /* ballsApp.swift */; };
+		9E7A6FE72C9A37200039C592 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FE62C9A371F0039C592 /* ContentView.swift */; };
+		9E7A6FE92C9A39B30039C592 /* PlayAreaNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FE82C9A39AF0039C592 /* PlayAreaNode.swift */; };
+		9E7A6FEB2C9A39CF0039C592 /* BallCountNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FEA2C9A39CC0039C592 /* BallCountNode.swift */; };
+		9E7A6FED2C9A39D80039C592 /* ShooterNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FEC2C9A39D20039C592 /* ShooterNode.swift */; };
+		9E7A6FF12C9A85E10039C592 /* FastForwardNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FF02C9A85DD0039C592 /* FastForwardNode.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		9E7A6F942C9A2C280039C592 /* balls.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = balls.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E7A6FAB2C9A2D710039C592 /* Actions.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Actions.sks; sourceTree = "<group>"; };
+		9E7A6FAC2C9A2D710039C592 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9E7A6FAD2C9A2D710039C592 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
+		9E7A6FAE2C9A2D710039C592 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
+		9E7A6FBD2C9A2E130039C592 /* GameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContext.swift; sourceTree = "<group>"; };
+		9E7A6FC32C9A2FA50039C592 /* BallNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallNode.swift; sourceTree = "<group>"; };
+		9E7A6FC42C9A2FAC0039C592 /* BlockNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockNode.swift; sourceTree = "<group>"; };
+		9E7A6FC52C9A2FBB0039C592 /* PowerUpNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerUpNode.swift; sourceTree = "<group>"; };
+		9E7A6FC72C9A2FE40039C592 /* PhysicsCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsCategory.swift; sourceTree = "<group>"; };
+		9E7A6FC82C9A30030039C592 /* GameInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameInfo.swift; sourceTree = "<group>"; };
+		9E7A6FC92C9A300A0039C592 /* LayoutInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutInfo.swift; sourceTree = "<group>"; };
+		9E7A6FCA2C9A30980039C592 /* StartState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartState.swift; sourceTree = "<group>"; };
+		9E7A6FCB2C9A30A00039C592 /* GameOverState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameOverState.swift; sourceTree = "<group>"; };
+		9E7A6FCC2C9A30AA0039C592 /* ResolveShotState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolveShotState.swift; sourceTree = "<group>"; };
+		9E7A6FCD2C9A30C60039C592 /* ShootingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShootingState.swift; sourceTree = "<group>"; };
+		9E7A6FCE2C9A30DE0039C592 /* IdleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleState.swift; sourceTree = "<group>"; };
+		9E7A6FDC2C9A36460039C592 /* BallType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallType.swift; sourceTree = "<group>"; };
+		9E7A6FDE2C9A36CB0039C592 /* TargetLineNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetLineNode.swift; sourceTree = "<group>"; };
+		9E7A6FE02C9A36DA0039C592 /* GameStatsNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatsNode.swift; sourceTree = "<group>"; };
+		9E7A6FE22C9A36E30039C592 /* BackgroundNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundNode.swift; sourceTree = "<group>"; };
+		9E7A6FE42C9A370D0039C592 /* ballsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ballsApp.swift; sourceTree = "<group>"; };
+		9E7A6FE62C9A371F0039C592 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9E7A6FE82C9A39AF0039C592 /* PlayAreaNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayAreaNode.swift; sourceTree = "<group>"; };
+		9E7A6FEA2C9A39CC0039C592 /* BallCountNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallCountNode.swift; sourceTree = "<group>"; };
+		9E7A6FEC2C9A39D20039C592 /* ShooterNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShooterNode.swift; sourceTree = "<group>"; };
+		9E7A6FF02C9A85DD0039C592 /* FastForwardNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastForwardNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9E7A6FA52C9A2C280039C592 /* Exceptions for "balls Shared" folder in "balls iOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Actions.sks,
-				Assets.xcassets,
-				GameScene.sks,
-				GameScene.swift,
-			);
-			target = 9E7A6F932C9A2C280039C592 /* balls iOS */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		9E7A6F8B2C9A2C260039C592 /* balls Shared */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9E7A6FA52C9A2C280039C592 /* Exceptions for "balls Shared" folder in "balls iOS" target */,
-			);
-			path = "balls Shared";
-			sourceTree = "<group>";
-		};
-		9E7A6F962C9A2C280039C592 /* balls iOS */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "balls iOS";
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		9E7A6F912C9A2C280039C592 /* Frameworks */ = {
@@ -53,8 +79,17 @@
 		9E7A6F862C9A2C260039C592 = {
 			isa = PBXGroup;
 			children = (
-				9E7A6F8B2C9A2C260039C592 /* balls Shared */,
-				9E7A6F962C9A2C280039C592 /* balls iOS */,
+				9E7A6FAC2C9A2D710039C592 /* Assets.xcassets */,
+				9E7A6FAB2C9A2D710039C592 /* Actions.sks */,
+				9E7A6FAD2C9A2D710039C592 /* GameScene.sks */,
+				9E7A6FC62C9A2FDC0039C592 /* Models */,
+				9E7A6FC12C9A2EB40039C592 /* Helpers */,
+				9E7A6FC02C9A2E470039C592 /* Nodes */,
+				9E7A6FBF2C9A2E400039C592 /* States */,
+				9E7A6FE42C9A370D0039C592 /* ballsApp.swift */,
+				9E7A6FE62C9A371F0039C592 /* ContentView.swift */,
+				9E7A6FBD2C9A2E130039C592 /* GameContext.swift */,
+				9E7A6FAE2C9A2D710039C592 /* GameScene.swift */,
 				9E7A6F952C9A2C280039C592 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +100,53 @@
 				9E7A6F942C9A2C280039C592 /* balls.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9E7A6FBF2C9A2E400039C592 /* States */ = {
+			isa = PBXGroup;
+			children = (
+				9E7A6FCA2C9A30980039C592 /* StartState.swift */,
+				9E7A6FCE2C9A30DE0039C592 /* IdleState.swift */,
+				9E7A6FCD2C9A30C60039C592 /* ShootingState.swift */,
+				9E7A6FCC2C9A30AA0039C592 /* ResolveShotState.swift */,
+				9E7A6FCB2C9A30A00039C592 /* GameOverState.swift */,
+			);
+			path = States;
+			sourceTree = "<group>";
+		};
+		9E7A6FC02C9A2E470039C592 /* Nodes */ = {
+			isa = PBXGroup;
+			children = (
+				9E7A6FF02C9A85DD0039C592 /* FastForwardNode.swift */,
+				9E7A6FE22C9A36E30039C592 /* BackgroundNode.swift */,
+				9E7A6FE82C9A39AF0039C592 /* PlayAreaNode.swift */,
+				9E7A6FEC2C9A39D20039C592 /* ShooterNode.swift */,
+				9E7A6FE02C9A36DA0039C592 /* GameStatsNode.swift */,
+				9E7A6FEA2C9A39CC0039C592 /* BallCountNode.swift */,
+				9E7A6FDE2C9A36CB0039C592 /* TargetLineNode.swift */,
+				9E7A6FC42C9A2FAC0039C592 /* BlockNode.swift */,
+				9E7A6FC32C9A2FA50039C592 /* BallNode.swift */,
+				9E7A6FC52C9A2FBB0039C592 /* PowerUpNode.swift */,
+			);
+			path = Nodes;
+			sourceTree = "<group>";
+		};
+		9E7A6FC12C9A2EB40039C592 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				9E7A6FC92C9A300A0039C592 /* LayoutInfo.swift */,
+				9E7A6FC82C9A30030039C592 /* GameInfo.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
+		9E7A6FC62C9A2FDC0039C592 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				9E7A6FC72C9A2FE40039C592 /* PhysicsCategory.swift */,
+				9E7A6FDC2C9A36460039C592 /* BallType.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -81,9 +163,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				9E7A6F962C9A2C280039C592 /* balls iOS */,
 			);
 			name = "balls iOS";
 			packageProductDependencies = (
@@ -131,6 +210,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E7A6FB02C9A2D710039C592 /* Actions.sks in Resources */,
+				9E7A6FB12C9A2D710039C592 /* GameScene.sks in Resources */,
+				9E7A6FB22C9A2D710039C592 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +223,29 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E7A6FBE2C9A2E140039C592 /* GameContext.swift in Sources */,
+				9E7A6FAF2C9A2D710039C592 /* GameScene.swift in Sources */,
+				9E7A6FD12C9A346D0039C592 /* GameOverState.swift in Sources */,
+				9E7A6FF12C9A85E10039C592 /* FastForwardNode.swift in Sources */,
+				9E7A6FE52C9A37110039C592 /* ballsApp.swift in Sources */,
+				9E7A6FED2C9A39D80039C592 /* ShooterNode.swift in Sources */,
+				9E7A6FD62C9A34720039C592 /* PhysicsCategory.swift in Sources */,
+				9E7A6FE92C9A39B30039C592 /* PlayAreaNode.swift in Sources */,
+				9E7A6FDF2C9A36CF0039C592 /* TargetLineNode.swift in Sources */,
+				9E7A6FE72C9A37200039C592 /* ContentView.swift in Sources */,
+				9E7A6FD72C9A347A0039C592 /* GameInfo.swift in Sources */,
+				9E7A6FD82C9A347A0039C592 /* LayoutInfo.swift in Sources */,
+				9E7A6FD22C9A346D0039C592 /* ShootingState.swift in Sources */,
+				9E7A6FD32C9A346D0039C592 /* ResolveShotState.swift in Sources */,
+				9E7A6FE32C9A36E60039C592 /* BackgroundNode.swift in Sources */,
+				9E7A6FDD2C9A36490039C592 /* BallType.swift in Sources */,
+				9E7A6FD42C9A346D0039C592 /* IdleState.swift in Sources */,
+				9E7A6FD92C9A347F0039C592 /* BallNode.swift in Sources */,
+				9E7A6FDA2C9A347F0039C592 /* BlockNode.swift in Sources */,
+				9E7A6FE12C9A36DD0039C592 /* GameStatsNode.swift in Sources */,
+				9E7A6FDB2C9A347F0039C592 /* PowerUpNode.swift in Sources */,
+				9E7A6FEB2C9A39CF0039C592 /* BallCountNode.swift in Sources */,
+				9E7A6FD02C9A345E0039C592 /* StartState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,7 +267,7 @@
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -192,7 +297,7 @@
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
