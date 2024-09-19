@@ -16,22 +16,22 @@ class ResolveShotState: GameState {
         return stateClass is IdleState.Type || stateClass is GameOverState.Type
     }
     
-    override func didEnter(from previousState: GKState?) {
-        print("ResolveShot")
-        
+    override func didEnter(from previousState: GKState?) {        
         gameScene.fastForwardNode?.cancelShow()
+        gameScene.gameInfo?.ballSpeedMultiplier = 1
         gameScene.fastForwardNode?.resetSpeed()
 
         collectBallsAndMoveShooter() {
-            self.gameScene.clearActiveBalls()
-            self.shiftBlocksDown()
-            self.addNewBlockRow() {
-                self.updateGameInfo()
-                
+            self.shiftBlocksDown() {
                 if self.isGameOver() {
                     self.stateMachine?.enter(GameOverState.self)
                 } else {
-                    self.stateMachine?.enter(IdleState.self)
+                    self.addNewBlockRow() {
+                        self.updateGameInfo()
+                        self.gameScene.clearAllBalls()
+                        self.gameScene.shooter.shooterBody.isHidden = false
+                        self.stateMachine?.enter(IdleState.self)
+                    }
                 }
             }
         }
@@ -60,24 +60,18 @@ extension ResolveShotState {
     }
     
     private func collectBallsAndMoveShooter(completion: @escaping () -> ()) {
-        let bottomY = gameScene.shooter.position.y
-        var ballsToCollect: [SKNode] = []
-        
-        for ball in gameScene.activeBalls {
-            if ball.position.y <= bottomY {
-                if firstBottomBallPosition == nil {
-                    firstBottomBallPosition = ball.position
-                } else {
-                    ballsToCollect.append(ball)
-                }
-            }
+        guard let firstBall = gameScene.firstBallToHitBottom else {
+            print("Warning: No ball hit the bottom line")
+            completion()
+            return
         }
+
+        let ballsToCollect = gameScene.balls.filter { $0 != firstBall }
         
-        if let firstPosition = firstBottomBallPosition {
-            animateBallCollection(ballsToCollect, to: firstPosition) {
-                self.moveShooterToPosition(firstPosition) {
-                    completion()
-                }
+        animateBallCollection(ballsToCollect, to: firstBall.position) {
+            self.moveShooterToPosition(firstBall.position) {
+                self.gameScene.firstBallToHitBottom = nil
+                completion()
             }
         }
     }
@@ -116,12 +110,7 @@ extension ResolveShotState {
         let moveAction = SKAction.moveTo(x: newX, duration: 0.3)
         gameScene.shooter.run(moveAction) {
             completion()
-        }
-        
-        if newX >= gameScene.layoutInfo.screenSize.width * 0.8 {
-            gameScene.ballCountNode.position.x = newX - gameScene.layoutInfo.shooterSize.width * 0.6
-        } else {
-            gameScene.ballCountNode.position.x = newX + gameScene.layoutInfo.shooterSize.width * 0.6
+            self.gameScene.updateBallCountNodePosition()
         }
     }
     
@@ -131,18 +120,29 @@ extension ResolveShotState {
 // MARK: Blocks
 extension ResolveShotState {
     
-    private func shiftBlocksDown() {
+    private func shiftBlocksDown(completion: @escaping () -> ()) {
         let shiftDistance: CGFloat = gameScene.layoutInfo.blockSize.height + gameScene.layoutInfo.blockSpacing
+        let moveDuration: TimeInterval = 0.3
+        
+        let moveAction = SKAction.moveBy(x: 0, y: -shiftDistance, duration: moveDuration)
+        
+        let dispatchGroup = DispatchGroup()
+        
         for block in gameScene.blocks {
-            block.run(SKAction.moveBy(x: 0, y: -shiftDistance, duration: 0.3))
+            dispatchGroup.enter()
+            block.run(moveAction) {
+                dispatchGroup.leave()
+            }
         }
-        
         for bonusBall in gameScene.bonusBalls {
-            bonusBall.run(SKAction.moveBy(x: 0, y: -shiftDistance, duration: 0.3))
+            bonusBall.run(moveAction)
+        }
+        for powerUp in gameScene.powerUpsOnBoard {
+            powerUp.run(moveAction)
         }
         
-        for powerUp in gameScene.powerUpsOnBoard {
-            powerUp.run(SKAction.moveBy(x: 0, y: -shiftDistance, duration: 0.3))
+        dispatchGroup.notify(queue: .main) {
+            completion()
         }
     }
     

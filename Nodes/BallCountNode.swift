@@ -26,6 +26,10 @@ class BallCountNode: SKNode {
     }
     
     func updateCount(_ count: Int) {
-        countLabel.text = "x\(count)"
+        if count < 1 {
+            countLabel.text = ""
+        } else {
+            countLabel.text = "x\(count)"
+        }
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import GameplayKit
+import SpriteKit
 
 class GameState: GKState, TapHandler  {
     
@@ -20,12 +21,11 @@ class GameState: GKState, TapHandler  {
     
 }
 
-
 class StartState: GameState {
     
-    private var instructionsLabel: SKLabelNode?
-    private var startButton: SKSpriteNode?
-    private var background: SKSpriteNode?
+    private var instructionsLabel1: SKLabelNode?
+    private var instructionsLabel2: SKLabelNode?
+    private var currentInstructionSet: Int = 0
     
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
         return stateClass is IdleState.Type
@@ -34,67 +34,99 @@ class StartState: GameState {
     override func didEnter(from previousState: GKState?) {
         super.didEnter(from: previousState)
         
-        showInstructions()
-        showStartButton()
+        showFirstInstructionSet()
         animateIntro()
-        addInitialBlocks()
-    }
+        addInitialBlocks()    }
     
     override func willExit(to nextState: GKState) {
         super.willExit(to: nextState)
         
-        instructionsLabel?.removeFromParent()
-        startButton?.removeFromParent()
-        background?.removeFromParent()
+        instructionsLabel1?.removeFromParent()
+        instructionsLabel2?.removeFromParent()
     }
 
     override func handleTap(_ touchLocation: CGPoint) {
-        if let button = startButton {
-            if button.contains(touchLocation) {
-                stateMachine?.enter(IdleState.self)
-            }
+
+        if currentInstructionSet == 0 {
+            showSecondInstructionSet()
+        } else if currentInstructionSet == 1 {
+            stateMachine?.enter(IdleState.self)
         }
     }
     
 }
 
-
 // MARK: Helpers
 extension StartState {
-    
-    private func showInstructions() {
-        background = SKSpriteNode(color: .darkGray, size: CGSize(width: gameScene.size.width * 0.8, height: gameScene.size.height * 0.2))
-        background?.position = CGPoint(x: gameScene.size.width / 2, y: gameScene.size.height * 0.43)
-        background?.zPosition = 9
+
+    private func showFirstInstructionSet() {
+        currentInstructionSet = 0
         
-        let instructions = "Tap and drag to aim.\nRelease to shoot the balls!"
-        instructionsLabel = SKLabelNode(text: instructions)
-        if let label = instructionsLabel {
-            label.numberOfLines = 0
-            label.fontName = "Arial"
-            label.fontSize = 24
-            label.position = CGPoint(x: gameScene.frame.midX, y: gameScene.frame.midY - 50)
-            label.zPosition = 10
-            gameScene.addChild(background!)
-            gameScene.addChild(label)
+        let instruction1 = "Drag to aim. Release to shoot the fruit!"
+        let instruction2 = "Tap anywhere to continue..."
+        
+        instructionsLabel1 = SKLabelNode(text: instruction1)
+        instructionsLabel2 = SKLabelNode(text: instruction2)
+        
+        if let label1 = instructionsLabel1, let label2 = instructionsLabel2 {
+            label1.fontName = "Arial"
+            label1.fontSize = 18
+            label1.fontColor = .gray
+            label1.position = CGPoint(x: gameScene.frame.midX, y: gameScene.layoutInfo.shooterPos.y + gameScene.layoutInfo.shooterSize.height * 3)
+            label1.horizontalAlignmentMode = .center
+            label1.zPosition = 10
+            gameScene.addChild(label1)
+            
+            label2.fontName = "Arial"
+            label2.fontSize = 12
+            label2.fontColor = .lightGray
+            label2.position = CGPoint(x: gameScene.frame.midX, y: label1.position.y - 30)
+            label2.horizontalAlignmentMode = .center
+            label2.zPosition = 10
+            gameScene.addChild(label2)
+            
+            let pulseOut = SKAction.fadeAlpha(to: 0.3, duration: 1.0)
+            let pulseIn = SKAction.fadeAlpha(to: 0.6, duration: 1.0)
+            let pulse = SKAction.sequence([pulseOut, pulseIn])
+            let repeatPulse = SKAction.repeatForever(pulse)
+            label2.run(repeatPulse)
         }
     }
     
-    private func showStartButton() {
-        startButton = SKSpriteNode(color: .green, size: CGSize(width: 200, height: 50))
-        if let button = startButton {
-            button.position = CGPoint(x: gameScene.frame.midX, y: gameScene.frame.midY - 100)
+    private func showSecondInstructionSet() {
+        instructionsLabel1?.removeFromParent()
+        instructionsLabel2?.removeFromParent()
+        
+        currentInstructionSet = 1
+        
+        let instruction1 = "Don't let the blocks hit the bottom!"
+        let instruction2 = "Tap anywhere to start..."
+        
+        instructionsLabel1 = SKLabelNode(text: instruction1)
+        instructionsLabel2 = SKLabelNode(text: instruction2)
+        
+        if let label1 = instructionsLabel1, let label2 = instructionsLabel2 {
+            label1.fontName = "Arial"
+            label1.fontSize = 18
+            label1.fontColor = .gray
+            label1.position = CGPoint(x: gameScene.frame.midX, y: gameScene.layoutInfo.shooterPos.y + gameScene.layoutInfo.shooterSize.height * 3)
+            label1.horizontalAlignmentMode = .center
+            label1.zPosition = 10
+            gameScene.addChild(label1)
             
-            let buttonLabel = SKLabelNode(text: "Start Game")
-            buttonLabel.fontName = "Arial"
-            buttonLabel.fontSize = 20
-            buttonLabel.fontColor = .black
-            buttonLabel.verticalAlignmentMode = .center
+            label2.fontName = "Arial"
+            label2.fontSize = 12
+            label2.fontColor = .lightGray
+            label2.position = CGPoint(x: gameScene.frame.midX, y: label1.position.y - 30)
+            label2.horizontalAlignmentMode = .center
+            label2.zPosition = 10
+            gameScene.addChild(label2)
             
-            button.addChild(buttonLabel)
-            button.zPosition = 10
-
-            gameScene.addChild(button)
+            let pulseOut = SKAction.fadeAlpha(to: 0.3, duration: 1.0)
+            let pulseIn = SKAction.fadeAlpha(to: 0.6, duration: 1.0)
+            let pulse = SKAction.sequence([pulseOut, pulseIn])
+            let repeatPulse = SKAction.repeatForever(pulse)
+            label2.run(repeatPulse)
         }
     }
     
@@ -108,6 +140,7 @@ extension StartState {
             let ball = SKSpriteNode(texture: randomTexture, size: CGSize(width: 20, height: 20))
             ball.position = CGPoint(x: CGFloat.random(in: 0..<gameScene.frame.width),
                                     y: gameScene.frame.height + ball.size.height + CGFloat.random(in: 0..<ball.size.height * 50))
+            ball.zPosition = 10000
             
             let fallAction = SKAction.moveTo(y: -ball.size.height, duration: Double.random(in: 1.0..<2.0))
             let removeAction = SKAction.removeFromParent()

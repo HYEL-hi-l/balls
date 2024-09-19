@@ -16,7 +16,7 @@ class ShooterNode: SKNode {
     private let maxBounces: Int = 5
     private let ballRadius: CGFloat = 8
     
-    private let wiggleFrequency: CGFloat = 0.1
+    private let wiggleFrequency: CGFloat = 0.2
     private let wiggleAmplitude: CGFloat = 3.0
     private var wiggleOffset: CGFloat = 0.0
     private let wiggleSpeed: CGFloat = 8.0
@@ -25,7 +25,6 @@ class ShooterNode: SKNode {
     
     private(set) var aimAngle: CGFloat = .pi / 2 {
         didSet {
-            updateAimLine()
             updateLaserSight()
         }
     }
@@ -41,18 +40,17 @@ class ShooterNode: SKNode {
         addChild(aimLine)
         
         setupLaserSight()
-        updateAimLine()
     }
     
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     func shoot(_ ball: BallNode) {
-        ball.applyInitialImpulse(angle: aimAngle, speed: 10)
+        ball.applyInitialImpulse(angle: aimAngle, speed: 8)
         hideAimLine()
+        shooterBody.isHidden = true
     }
     
     func reset() {
-        self.aimAngle = .pi / 2
         hideLaserSight()
     }
     
@@ -99,10 +97,6 @@ extension ShooterNode {
         aimLine.expandLine(from: position, to: point, angle: aimAngle)
     }
     
-    private func updateAimLine() {
-        let lineLength: CGFloat = 50
-        aimLine.updateLine(length: lineLength, angle: aimAngle)
-    }
 }
 
 // MARK: Laser Sight
@@ -111,9 +105,9 @@ extension ShooterNode {
     private func setupLaserSight() {
         laserSight = SKShapeNode()
         laserSight?.strokeColor = .red
-        laserSight?.lineWidth = 2
-        laserSight?.alpha = 0.5
-        laserSight?.zPosition = 1
+        laserSight?.lineWidth = 3
+        laserSight?.alpha = 0.7
+        laserSight?.zPosition = -1
         laserSight?.isHidden = true
         addChild(laserSight!)
     }
@@ -196,7 +190,6 @@ extension ShooterNode {
         var hitBlock = false
         var hitNormal: CGPoint = .zero
         
-        // Check collision with walls and bottom line
         if dx < 0 {
             let tLeft = (leftWallX - point.x) / dx
             if tLeft < t {
@@ -224,7 +217,6 @@ extension ShooterNode {
             }
         }
         
-        // Check collision with blocks
         for block in scene.blocks {
             let blockFrame = convert(block.frame, from: scene)
             if let collision = checkCircleRectCollision(center: point, direction: CGPoint(x: dx, y: dy), radius: ballRadius, rect: blockFrame) {
@@ -237,13 +229,11 @@ extension ShooterNode {
             }
         }
         
-        // Calculate bounce angle
         if hitNormal != .zero {
             let incidentVector = CGPoint(x: dx, y: dy)
             nextAngle = calculateBounceAngle(incidentVector: incidentVector, normal: hitNormal)
         }
         
-        // If no collision, extend to a far point
         if t == .greatestFiniteMagnitude {
             nextPoint = CGPoint(x: point.x + dx * 1000, y: point.y + dy * 1000)
         }
@@ -252,13 +242,11 @@ extension ShooterNode {
     }
     
     private func checkCircleRectCollision(center: CGPoint, direction: CGPoint, radius: CGFloat, rect: CGRect) -> (point: CGPoint, normal: CGPoint, t: CGFloat)? {
-        // Check collision with expanded rectangle
         let expandedRect = rect.insetBy(dx: -radius, dy: -radius)
         guard let rectCollision = rayIntersectsRect(origin: center, direction: direction, rect: expandedRect) else {
             return nil
         }
         
-        // Check if it's a corner collision
         let corners = [
             CGPoint(x: rect.minX, y: rect.minY),
             CGPoint(x: rect.maxX, y: rect.minY),
@@ -269,14 +257,12 @@ extension ShooterNode {
         for corner in corners {
             if let cornerCollision = rayIntersectsCircle(center: corner, radius: radius, rayOrigin: center, rayDirection: direction) {
                 if cornerCollision.t < rectCollision.t {
-                    // It's a corner collision
                     let normal = CGPoint(x: cornerCollision.point.x - corner.x, y: cornerCollision.point.y - corner.y).normalized()
                     return (cornerCollision.point, normal, cornerCollision.t)
                 }
             }
         }
         
-        // It's an edge collision
         return rectCollision
     }
     

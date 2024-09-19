@@ -12,12 +12,14 @@ class GameInfo {
     var round: Int
     var ballCount: Int
     var ballSpeed: CGFloat
+    var ballSpeedMultiplier: CGFloat
     
     init() {
         score = 0
         round = 1
         ballCount = 1
         ballSpeed = 8
+        ballSpeedMultiplier = 1
     }
     
     func reset() {
@@ -25,6 +27,7 @@ class GameInfo {
         round = 1
         ballCount = 1
         ballSpeed = 8
+        ballSpeedMultiplier = 1
     }
     
     func incrementScore(by amount: Int) {

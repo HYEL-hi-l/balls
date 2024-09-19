@@ -16,4 +16,5 @@ struct PhysicsCategory {
     static let BonusBall: UInt32 = 0b1000
     static let PowerUp: UInt32 = 0b10000
     static let BottomLine: UInt32 = 0b100000
+    static let NoMansLand: UInt32 = 0b1000000
 }

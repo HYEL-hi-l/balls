@@ -16,13 +16,12 @@ class ShootingState: GameState {
         return stateClass is ResolveShotState.Type
     }
 
-    override func didEnter(from previousState: GKState?) {
-        print("ShootingState")
-        
+    override func didEnter(from previousState: GKState?) {        
         bottomY = gameScene.shooter.position.y
         shootAllBalls()
-        gameScene.fastForwardNode?.scheduleShow(in: 5.0)
+        gameScene.fastForwardNode?.scheduleShow(in: 1.0)
         gameScene.deactivateLaserSight()
+        gameScene.shooter.shooterBody.isHidden = true
     }
     
 }

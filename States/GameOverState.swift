@@ -18,7 +18,6 @@ class GameOverState: GameState {
     }
 
     override func didEnter(from previousState: GKState?) {
-        print("GameOverState")
         super.didEnter(from: previousState)
         showGameOverScreen()
     }

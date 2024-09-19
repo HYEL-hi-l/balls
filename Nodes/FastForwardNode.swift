@@ -42,9 +42,9 @@ class FastForwardNode: SKLabelNode {
     }
     
     func cancelShow() {
+        hide()
         showTimer?.invalidate()
         showTimer = nil
-        hide()
     }
     
     func hide() {
@@ -58,10 +58,10 @@ class FastForwardNode: SKLabelNode {
         hide()
         
         if ballSpeedMultiplier == 1.0 {
-            updateBallSpeed(to: 2.0)
-            scheduleShow(in: 10.0)
-        } else if ballSpeedMultiplier == 2.0 {
-            updateBallSpeed(to: 3.0)
+            updateBallSpeed(to: 1.8)
+            scheduleShow(in: 1.0)
+        } else if ballSpeedMultiplier == 1.8 {
+            updateBallSpeed(to: 1.5)
         }
     }
     

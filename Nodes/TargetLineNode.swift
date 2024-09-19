@@ -19,6 +19,7 @@ class TargetLineNode: SKShapeNode {
         strokeColor = .white
         lineWidth = 6
         lineCap = .round
+        zPosition = -1
         updateLine(length: 0, angle: .pi / 2)
     }
     

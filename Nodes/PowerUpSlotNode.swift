@@ -102,7 +102,6 @@ class PowerUpSlotNode: SKNode {
                 SKAction.scale(to: 1.3, duration: 0.5)
             ])
         ])
-//        let rotateAction = SKAction.rotate(byAngle: .pi * 2, duration: 4)
         powerUpSprite.run(SKAction.repeatForever(spritePulseAction))
     }
     

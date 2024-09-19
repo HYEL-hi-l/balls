@@ -9,6 +9,8 @@ import SpriteKit
 
 class BallNode: SKSpriteNode {
     let ballType: BallType
+    var stuckStartTime: TimeInterval?
+    var stuckPosition: CGPoint?
     
     init(type: BallType, radius: CGFloat, atlas: SKTextureAtlas) {
         self.ballType = type
@@ -47,10 +49,8 @@ class BallNode: SKSpriteNode {
     func handleCollision(with node: SKNode) {
         switch ballType {
         case .normal:
-            // Implement behavior for normal ball
             break
         case .double:
-            // Implement double ball behavior
             break
         }
     }
