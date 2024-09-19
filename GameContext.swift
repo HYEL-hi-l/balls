@@ -50,16 +50,20 @@ class GameContext {
         layoutInfo.shooterSize = CGSize(width: 40, height: 40)
         layoutInfo.shooterPos = CGPoint(x: screenSize.width / 2, y: layoutInfo.playAreaPos.y - layoutInfo.playAreaSize.height / 2 + 30)
         
+        let combinedPowerUpSlotsLength = layoutInfo.playAreaSize.width - (4 * layoutInfo.powerUpSlotSpacing) - layoutInfo.powerUpSlotSpacing
+        let powerUpSlotLength = combinedPowerUpSlotsLength / Double(4)
+        layoutInfo.powerUpSlotSize = CGSize(width: powerUpSlotLength, height: powerUpSlotLength)
+        let sectionUnderPlayArea = layoutInfo.screenSize.height / 2 - layoutInfo.playAreaSize.height / 2
+        layoutInfo.powerUpSlotYPos = (sectionUnderPlayArea * 0.58) - (layoutInfo.powerUpSlotSize.height / 2)
+        
         let ffX = layoutInfo.playAreaPos.x + layoutInfo.playAreaSize.width / 2 - layoutInfo.fastForwardPadding
         let ffY = layoutInfo.playAreaPos.y + layoutInfo.playAreaSize.height / 2 - layoutInfo.fastForwardPadding - 12.5
         layoutInfo.fastForwardPos =  CGPoint(x: ffX, y: ffY)
         
-//        layoutInfo.bottomLineY = layoutInfo.shooterPos.y + layoutInfo.ballRadius * 2.5
-        layoutInfo.bottomLineY = layoutInfo.shooterPos.y
+        layoutInfo.bottomLineY = layoutInfo.shooterPos.y - layoutInfo.ballRadius * 1.4
+        layoutInfo.gameOverLineY = layoutInfo.shooterPos.y
         let combinedBlockEdgeLength = layoutInfo.playAreaSize.width - (CGFloat(layoutInfo.columns + 1) * layoutInfo.blockSpacing)
         let blockEdgeLength = combinedBlockEdgeLength / Double(layoutInfo.columns)
-        print("blockEdgeLength", blockEdgeLength)
         layoutInfo.blockSize = CGSize(width: blockEdgeLength, height: blockEdgeLength)
-
     }
 }

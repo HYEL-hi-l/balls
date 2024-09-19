@@ -33,6 +33,8 @@
 		9E7A6FEB2C9A39CF0039C592 /* BallCountNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FEA2C9A39CC0039C592 /* BallCountNode.swift */; };
 		9E7A6FED2C9A39D80039C592 /* ShooterNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FEC2C9A39D20039C592 /* ShooterNode.swift */; };
 		9E7A6FF12C9A85E10039C592 /* FastForwardNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FF02C9A85DD0039C592 /* FastForwardNode.swift */; };
+		9E7A6FF32C9A93C90039C592 /* BonusBallNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FF22C9A93C50039C592 /* BonusBallNode.swift */; };
+		9E7A6FF72C9B81F60039C592 /* PowerUpSlotNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7A6FF62C9B81F60039C592 /* PowerUpSlotNode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +65,8 @@
 		9E7A6FEA2C9A39CC0039C592 /* BallCountNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BallCountNode.swift; sourceTree = "<group>"; };
 		9E7A6FEC2C9A39D20039C592 /* ShooterNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShooterNode.swift; sourceTree = "<group>"; };
 		9E7A6FF02C9A85DD0039C592 /* FastForwardNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastForwardNode.swift; sourceTree = "<group>"; };
+		9E7A6FF22C9A93C50039C592 /* BonusBallNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonusBallNode.swift; sourceTree = "<group>"; };
+		9E7A6FF62C9B81F60039C592 /* PowerUpSlotNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerUpSlotNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,16 +121,18 @@
 		9E7A6FC02C9A2E470039C592 /* Nodes */ = {
 			isa = PBXGroup;
 			children = (
-				9E7A6FF02C9A85DD0039C592 /* FastForwardNode.swift */,
-				9E7A6FE22C9A36E30039C592 /* BackgroundNode.swift */,
 				9E7A6FE82C9A39AF0039C592 /* PlayAreaNode.swift */,
-				9E7A6FEC2C9A39D20039C592 /* ShooterNode.swift */,
+				9E7A6FE22C9A36E30039C592 /* BackgroundNode.swift */,
 				9E7A6FE02C9A36DA0039C592 /* GameStatsNode.swift */,
 				9E7A6FEA2C9A39CC0039C592 /* BallCountNode.swift */,
+				9E7A6FF02C9A85DD0039C592 /* FastForwardNode.swift */,
+				9E7A6FEC2C9A39D20039C592 /* ShooterNode.swift */,
 				9E7A6FDE2C9A36CB0039C592 /* TargetLineNode.swift */,
 				9E7A6FC42C9A2FAC0039C592 /* BlockNode.swift */,
 				9E7A6FC32C9A2FA50039C592 /* BallNode.swift */,
+				9E7A6FF22C9A93C50039C592 /* BonusBallNode.swift */,
 				9E7A6FC52C9A2FBB0039C592 /* PowerUpNode.swift */,
+				9E7A6FF62C9B81F60039C592 /* PowerUpSlotNode.swift */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -237,8 +243,10 @@
 				9E7A6FD82C9A347A0039C592 /* LayoutInfo.swift in Sources */,
 				9E7A6FD22C9A346D0039C592 /* ShootingState.swift in Sources */,
 				9E7A6FD32C9A346D0039C592 /* ResolveShotState.swift in Sources */,
+				9E7A6FF32C9A93C90039C592 /* BonusBallNode.swift in Sources */,
 				9E7A6FE32C9A36E60039C592 /* BackgroundNode.swift in Sources */,
 				9E7A6FDD2C9A36490039C592 /* BallType.swift in Sources */,
+				9E7A6FF72C9B81F60039C592 /* PowerUpSlotNode.swift in Sources */,
 				9E7A6FD42C9A346D0039C592 /* IdleState.swift in Sources */,
 				9E7A6FD92C9A347F0039C592 /* BallNode.swift in Sources */,
 				9E7A6FDA2C9A347F0039C592 /* BlockNode.swift in Sources */,

@@ -10,9 +10,10 @@ import SpriteKit
 class BallNode: SKSpriteNode {
     let ballType: BallType
     
-    init(type: BallType, radius: CGFloat) {
+    init(type: BallType, radius: CGFloat, atlas: SKTextureAtlas) {
         self.ballType = type
-        let texture = SKTexture(imageNamed: "blueberry")
+        let randomTextureName = atlas.textureNames.randomElement() ?? "blueberry"
+        let texture = atlas.textureNamed(randomTextureName)
         super.init(texture: texture, color: .clear, size: CGSize(width: radius * 2, height: radius * 2))
         
         setupPhysics(radius: radius)
@@ -33,7 +34,7 @@ class BallNode: SKSpriteNode {
         
         physicsBody?.categoryBitMask = PhysicsCategory.Ball
         physicsBody?.collisionBitMask = PhysicsCategory.Wall | PhysicsCategory.Block
-        physicsBody?.contactTestBitMask = PhysicsCategory.Wall | PhysicsCategory.Block
+        physicsBody?.contactTestBitMask = PhysicsCategory.Wall | PhysicsCategory.Block | PhysicsCategory.BottomLine
     }
     
     func applyInitialImpulse(angle: CGFloat, speed: CGFloat) {
@@ -42,6 +43,7 @@ class BallNode: SKSpriteNode {
         physicsBody?.applyImpulse(CGVector(dx: dx, dy: dy))
     }
     
+    // tbd
     func handleCollision(with node: SKNode) {
         switch ballType {
         case .normal:

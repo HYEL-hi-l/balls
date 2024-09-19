@@ -35,19 +35,19 @@ class GameStatsNode: SKNode {
         scoreLabel.fontSize = 24
         scoreLabel.fontColor = .white
         scoreLabel.horizontalAlignmentMode = .left
-        scoreLabel.position = CGPoint(x: size.width * 0.05, y: size.height * 0.9)
+        scoreLabel.position = CGPoint(x: size.width * 0.05, y: size.height * 0.85)
         
-        ballCountLabel = SKLabelNode(fontNamed: "Arial")
+        ballCountLabel = SKLabelNode(fontNamed: "Arial-Bold")
         ballCountLabel.fontSize = 24
         ballCountLabel.fontColor = .white
         ballCountLabel.horizontalAlignmentMode = .right
-        ballCountLabel.position = CGPoint(x: size.width * 0.95, y: size.height * 0.9)
+        ballCountLabel.position = CGPoint(x: size.width * 0.95, y: size.height * 0.85)
         
         roundLabel = SKLabelNode(fontNamed: "Arial")
         roundLabel.fontSize = 24
         roundLabel.fontColor = .white
         roundLabel.horizontalAlignmentMode = .center
-        roundLabel.position = CGPoint(x: size.width * 0.5, y: size.height * 0.9)
+        roundLabel.position = CGPoint(x: size.width * 0.5, y: size.height * 0.85)
         
         super.init()
         

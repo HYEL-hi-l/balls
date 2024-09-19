@@ -12,6 +12,7 @@ class FastForwardNode: SKLabelNode {
     var ballSpeedMultiplier: CGFloat = 1.0
     weak var gameScene: GameScene?
     var showTimer: Timer?
+    var isTappable: Bool = false
     
     init(scene: GameScene) {
         self.gameScene = scene
@@ -31,26 +32,36 @@ class FastForwardNode: SKLabelNode {
     
     func scheduleShow(in duration: TimeInterval) {
         showTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
-            self?.alpha = 0.3
+            self?.show()
         }
+    }
+    
+    func show() {
+        self.alpha = 0.3
+        self.isTappable = true
     }
     
     func cancelShow() {
         showTimer?.invalidate()
         showTimer = nil
+        hide()
+    }
+    
+    func hide() {
         self.alpha = 0.0
+        self.isTappable = false
     }
     
     func toggleBallSpeed() {
-        self.alpha = 0.0
+        guard isTappable else { return }
+        
+        hide()
         
         if ballSpeedMultiplier == 1.0 {
             updateBallSpeed(to: 2.0)
             scheduleShow(in: 10.0)
         } else if ballSpeedMultiplier == 2.0 {
             updateBallSpeed(to: 3.0)
-        } else {
-            return
         }
     }
     
@@ -62,5 +73,6 @@ class FastForwardNode: SKLabelNode {
     func resetSpeed() {
         ballSpeedMultiplier = 1.0
         gameScene?.updateBallSpeeds(multiplier: ballSpeedMultiplier)
+        hide()
     }
 }

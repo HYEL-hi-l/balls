@@ -9,8 +9,14 @@ import GameplayKit
 import SpriteKit
 
 class IdleState: GameState {
-    private let aimingThreshold: CGFloat = 75.0
+    
+    private let aimingThreshold: CGFloat = 150.0
+    private let cancelThreshold: CGFloat = 35.0
     private var isAiming = false
+    
+    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+        return stateClass is ShootingState.Type
+    }
 
     override func didEnter(from previousState: GKState?) {
         print("IdleState")
@@ -19,15 +25,11 @@ class IdleState: GameState {
         gameScene.enableAiming()
     }
     
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        return stateClass is ShootingState.Type
-    }
-    
     override func willExit(to nextState: GKState) {
         gameScene.disableAiming()
     }
     
-    func handleTouchesBegan(_ touchLocation: CGPoint) {
+    override func handleTap(_ touchLocation: CGPoint) {
         if distanceToShooter(touchLocation) < aimingThreshold {
             isAiming = true
             gameScene.beginAiming()
@@ -51,8 +53,15 @@ class IdleState: GameState {
         }
     }
     
+}
+
+
+// MARK: Helpers
+extension IdleState {
+    
     private func distanceToShooter(_ point: CGPoint) -> CGFloat {
         let shooterPosition = gameScene.shooter.position
         return hypot(point.x - shooterPosition.x, point.y - shooterPosition.y)
     }
+    
 }

@@ -12,9 +12,12 @@ protocol TapHandler {
 }
 
 class GameScene: SKScene {
+    
     unowned let context: GameContext
     var gameInfo: GameInfo? { context.gameInfo }
     var layoutInfo: LayoutInfo { context.layoutInfo }
+    
+    let textureAtlas = SKTextureAtlas(named: "BallsAtlas")
     
     private var background: BackgroundNode!
     private var bottomLine: SKShapeNode!
@@ -22,12 +25,24 @@ class GameScene: SKScene {
     var shooter: ShooterNode!
     var gameStats: GameStatsNode!
     var fastForwardNode: FastForwardNode!
+    var ballCountNode: BallCountNode!
 
     private var balls: [BallNode] = []
     var activeBalls: [BallNode] = []
     var blocks: [BlockNode] = []
+    var bonusBalls: [BonusBallNode] = []
     var isAimingEnabled: Bool = false
     var allBallsShot: Bool = false
+    
+    var powerUpIsActive: Bool = false
+    var activePowerUpSlot: PowerUpSlotNode?
+    var powerUpSlots: [PowerUpSlotNode] = []
+    var collectedPowerUps: [PowerUpNode?] = [nil, nil, nil, nil]
+    var powerUpsOnBoard: [PowerUpNode] = []
+    var isLaserSightActive: Bool = false
+    var isDestructiveTouchActive: Bool = false
+    var remainingBalls: Int = 1
+
     
     init(context: GameContext, size: CGSize) {
         self.context = context
@@ -44,8 +59,34 @@ class GameScene: SKScene {
         setupBottomLine()
         setupGameStats()
         setupFastForwardNode()
-        context.stateMachine?.enter(StartState.self)
+        setupPowerUpSlots()
+        setupBallCountNode()
+        
+        textureAtlas.preload {
+            self.context.stateMachine?.enter(StartState.self)
+        }
     }
+    
+    func reset() {
+        gameStats.reset()
+        gameInfo?.reset()
+        shooter.position = layoutInfo.shooterPos
+        shooter.reset()
+        
+        clearBlocks()
+        clearActiveBalls()
+        clearBonusBalls()
+        clearPowerUps()
+
+        remainingBalls = gameInfo?.ballCount ?? 1
+        updateBallCountDisplay()
+    }
+    
+}
+
+
+// MARK: Setup
+extension GameScene {
     
     func setupPhysics() {
         physicsWorld.gravity = CGVector.zero
@@ -80,9 +121,14 @@ class GameScene: SKScene {
         bottomLine.lineWidth = 1
         bottomLine.zPosition = 1
         
+        bottomLine.physicsBody = SKPhysicsBody(edgeChainFrom: linePath)
+        bottomLine.physicsBody?.isDynamic = false
+        bottomLine.physicsBody?.categoryBitMask = PhysicsCategory.BottomLine
+        bottomLine.physicsBody?.contactTestBitMask = PhysicsCategory.Ball
+        bottomLine.physicsBody?.collisionBitMask = PhysicsCategory.Ball
+        
         addChild(bottomLine)
     }
-    
     func setupGameStats() {
         gameStats = GameStatsNode(size: self.size)
         addChild(gameStats)
@@ -94,39 +140,36 @@ class GameScene: SKScene {
         addChild(fastForwardNode)
     }
     
-    override func update(_ currentTime: TimeInterval) {
-        context.stateMachine?.update(deltaTime: currentTime)
+    func setupPowerUpSlots() {
+        let slotSize = layoutInfo.powerUpSlotSize
+        let spacing = layoutInfo.powerUpSlotSpacing
+        let totalWidth = (slotSize.width * 4) + (spacing * 4)
+        let startX = -(totalWidth / 2 - size.width / 2) + slotSize.width / 2 + spacing / 2
+        let bottomY = layoutInfo.powerUpSlotYPos
         
-        checkBallPositions()
-        if allBallsShot {
-            checkForRoundEnd()
+        for i in 0..<4 {
+            let slot = PowerUpSlotNode(size: slotSize)
+            slot.position = CGPoint(x: startX + (CGFloat(i) * (slotSize.width + spacing)), y: CGFloat(bottomY) + slotSize.height / 2)
+            addChild(slot)
+            powerUpSlots.append(slot)
         }
-    }
-    
-    private func checkBallPositions() {
-        let bottomY = shooter.position.y
-        for ball in activeBalls {
-            if ball.position.y <= bottomY && ball.physicsBody?.velocity.dy ?? 0 < 0 {
-                ball.physicsBody?.velocity = .zero
-                ball.position.y = bottomY
-            }
-        }
-    }
-    
-    private func checkForRoundEnd() {
-        if activeBalls.allSatisfy({ $0.physicsBody?.velocity == .zero }) {
-            context.stateMachine?.enter(ResolveShotState.self)
-            allBallsShot = false
-        }
-    }
-    
-    func clearActiveBalls() {
-        for ball in activeBalls {
-            ball.removeFromParent()
-        }
-        activeBalls.removeAll()
     }
 
+    
+    func setupBallCountNode() {
+        ballCountNode = BallCountNode()
+        ballCountNode.position = CGPoint(x: shooter.position.x + layoutInfo.shooterSize.width * 0.6, y: shooter.position.y + layoutInfo.shooterSize.width * 0.6)
+        ballCountNode.zPosition = 3
+        addChild(ballCountNode)
+        updateBallCountDisplay()
+    }
+    
+}
+
+
+// MARK: Touch
+extension GameScene {
+    
     @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
         let viewLocation = recognizer.location(in: view)
         let touchLocation = convertPoint(fromView: viewLocation)
@@ -139,16 +182,16 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
-        if fastForwardNode.contains(location) {
+        if fastForwardNode.contains(location) && fastForwardNode.isTappable && !isDestructiveTouchActive {
             fastForwardNode.toggleBallSpeed()
         }
         
-        if let currentState = context.stateMachine?.currentState as? TapHandler {
+        if !isDestructiveTouchActive, let currentState = context.stateMachine?.currentState as? TapHandler {
             currentState.handleTap(location)
         }
         
-        if let idleState = context.stateMachine?.currentState as? IdleState {
-            idleState.handleTouchesBegan(location)
+        if !powerUpIsActive, let _ = context.stateMachine?.currentState as? IdleState {
+            handlePowerUpSlotTap(at: location)
         }
     }
 
@@ -158,7 +201,9 @@ class GameScene: SKScene {
             return
         }
         let location = touch.location(in: self)
-        state.handleTouchesMoved(location)
+        if !isDestructiveTouchActive {
+            state.handleTouchesMoved(location)
+        }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -167,7 +212,141 @@ class GameScene: SKScene {
             return
         }
         let location = touch.location(in: self)
-        state.handleTouchesEnded(location)
+        if isDestructiveTouchActive {
+            handleDestructiveTouch(at: location)
+        } else {
+            state.handleTouchesEnded(location)
+        }
+    }
+    
+    private func handlePowerUpSlotTap(at location: CGPoint) {
+        for slot in powerUpSlots {
+            if slot.contains(location), let powerUp = slot.powerUp {
+                activePowerUpSlot = slot
+                activatePowerUp(powerUp)
+                slot.activate()
+                break
+            }
+        }
+    }
+    
+    private func handleDestructiveTouch(at location: CGPoint) {
+        if let tappedNode = atPoint(location) as? BlockNode {
+            removeBlock(tappedNode)
+            gameInfo?.incrementScore(by: tappedNode.hitPoints)
+            gameStats.incrementScore(by: tappedNode.hitPoints)
+            deactivateDestructiveTouch()
+        }
+    }
+}
+
+
+// MARK: Updating and checks
+extension GameScene {
+    
+    override func update(_ currentTime: TimeInterval) {
+        context.stateMachine?.update(deltaTime: currentTime)
+                
+        if isDestructiveTouchActive {
+             // visual/state effects?
+         } else {
+             isDestructiveTouchActive = false
+         }
+        
+        if isLaserSightActive {
+            shooter.update(currentTime)
+        }
+    }
+    
+}
+
+
+// MARK: Ball logic
+extension GameScene {
+    func createBall() -> BallNode {
+        let ball = BallNode(type: .normal, radius: layoutInfo.ballRadius, atlas: textureAtlas)
+        ball.position = shooter.position
+        activeBalls.append(ball)
+        addChild(ball)
+        return ball
+    }
+    
+    func shootBall(_ ball: BallNode) {
+        shooter.shoot(ball)
+        remainingBalls -= 1
+        updateBallCountDisplay()
+    }
+    
+    func clearActiveBalls() {
+        for ball in activeBalls {
+            ball.removeFromParent()
+        }
+        activeBalls.removeAll()
+    }
+    
+    func updateBallSpeeds(multiplier: CGFloat) {
+        for ball in children.compactMap({ $0 as? BallNode }) {
+            let velocity = ball.physicsBody?.velocity
+            let newVelocity = CGVector(dx: (velocity?.dx ?? 0) * multiplier, dy: (velocity?.dy ?? 0) * multiplier)
+            ball.physicsBody?.velocity = newVelocity
+        }
+    }
+    
+    func updateBallCountDisplay() {
+        ballCountNode.updateCount(remainingBalls)
+    }
+    
+    func addBonusBall(at position: CGPoint) {
+        let bonusBall = BonusBallNode(position: position, radius: layoutInfo.blockSize.width * 0.3)
+        bonusBalls.append(bonusBall)
+        addChild(bonusBall)
+        animateExtraItem(bonusBall, at: position)
+    }
+    
+    func animateExtraItem(_ node: SKNode, at position: CGPoint) {
+        node.position = CGPoint(x: position.x, y: position.y + size.height)
+        node.alpha = 0
+        
+        let dropAction = SKAction.moveTo(y: position.y, duration: 0.2)
+        let bounceAction = SKAction.sequence([
+            SKAction.moveBy(x: 0, y: 8, duration: 0.1),
+            SKAction.moveBy(x: 0, y: -8, duration: 0.1)
+        ])
+        let fadeInAction = SKAction.fadeIn(withDuration: 0.4)
+        
+        let animationSequence = SKAction.sequence([
+            SKAction.group([dropAction, fadeInAction]),
+            bounceAction
+        ])
+        
+        node.run(SKAction.sequence([
+            animationSequence
+        ]))
+    }
+    
+    func clearBonusBalls() {
+        for bonusBall in bonusBalls {
+            bonusBall.removeFromParent()
+        }
+        bonusBalls.removeAll()
+    }
+}
+
+
+// MARK: Aiming logic
+extension GameScene {
+    
+    func beginAiming() {
+        shooter.showAimLine()
+        shooter.shooterBody.texture = SKTexture(imageNamed: "hungry")
+        
+        if isLaserSightActive {
+            shooter.showLaserSight()
+        }
+    }
+    
+    func updateAiming(to point: CGPoint) {
+        shooter.aim(toward: point)
     }
     
     func enableAiming() {
@@ -178,32 +357,16 @@ class GameScene: SKScene {
         isAimingEnabled = false
     }
     
-    func beginAiming() {
-        shooter.showAimLine()
-        shooter.shooterBody.texture = SKTexture(imageNamed: "hungry")
-    }
-    
-    func updateAiming(to point: CGPoint) {
-        shooter.aim(toward: point)
-    }
-    
     func cancelAiming() {
         shooter.hideAimLine()
         shooter.shooterBody.texture = SKTexture(imageNamed: "happy")
+        shooter.hideLaserSight()
     }
-    
-    func createBall() -> BallNode {
-        let ball = BallNode(type: .normal, radius: layoutInfo.ballRadius)
-        ball.position = shooter.position
-        activeBalls.append(ball)
-        addChild(ball)
-        return ball
-    }
-    
-    func shootBall(_ ball: BallNode) {
-        shooter.shoot(ball)
-    }
-    
+}
+
+
+// MARK: Block Llgic
+extension GameScene {
     func addBlock(_ block: BlockNode) {
         blocks.append(block)
         addChild(block)
@@ -222,51 +385,232 @@ class GameScene: SKScene {
         }
         blocks.removeAll()
     }
-    
-    func moveBlocksDown() {
-        for block in blocks {
-            let moveAction = SKAction.moveBy(x: 0, y: -30, duration: 0.5)
-            block.run(moveAction)
-        }
-    }
-    
-    func reset() {
-        gameStats.reset()
-        gameInfo?.reset()
-        clearBlocks()
-        clearActiveBalls()
-        shooter.position = layoutInfo.shooterPos
-        shooter.reset()
-    }
-    
-    func updateBallSpeeds(multiplier: CGFloat) {
-        for ball in children.compactMap({ $0 as? BallNode }) {
-            let velocity = ball.physicsBody?.velocity
-            let newVelocity = CGVector(dx: (velocity?.dx ?? 0) * multiplier, dy: (velocity?.dy ?? 0) * multiplier)
-            ball.physicsBody?.velocity = newVelocity
-        }
-    }
-
 }
 
-extension GameScene: SKPhysicsContactDelegate {
-    func didBegin(_ contact: SKPhysicsContact) {
-        guard let nodeA = contact.bodyA.node, let nodeB = contact.bodyB.node else { return }
+
+// MARK: PowerUps
+extension GameScene {
+    func addPowerUp(at position: CGPoint) {
+        let powerUpSize = CGSize(width: layoutInfo.blockSize.width * 0.8, height: layoutInfo.blockSize.height * 0.8)
+        let powerUpType: PowerUpNode.PowerUpType = Bool.random() ? .laserSight : .destructiveTouch
+        let powerUp = PowerUpNode(type: powerUpType, size: powerUpSize)
+        powerUp.position = position
+        powerUpsOnBoard.append(powerUp)
+        addChild(powerUp)
+        animateExtraItem(powerUp, at: position)
+    }
+    
+    func collectPowerUp(_ powerUp: PowerUpNode) {
+        guard !powerUp.isCollected else { print("collected"); return }
         
-        if let ball = nodeA as? BallNode, let block = nodeB as? BlockNode {
-            handleBallBlockCollision(ball: ball, block: block)
-        } else if let ball = nodeB as? BallNode, let block = nodeA as? BlockNode {
-            handleBallBlockCollision(ball: ball, block: block)
+        powerUp.collect()
+        if let index = powerUpsOnBoard.firstIndex(of: powerUp) {
+            powerUpsOnBoard.remove(at: index)
+        }
+        
+        if let emptySlotIndex = collectedPowerUps.firstIndex(of: nil) {
+            collectedPowerUps[emptySlotIndex] = powerUp
+            updatePowerUpSlots()
         }
     }
     
-    private func handleBallBlockCollision(ball: BallNode, block: BlockNode) {
-        block.hit()
+    func updatePowerUpSlots() {
+        for (index, powerUp) in collectedPowerUps.enumerated() {
+            powerUpSlots[index].powerUp = powerUp
+        }
+    }
+    
+    func activatePowerUp(_ powerUp: PowerUpNode) {
+        powerUpIsActive = true
+        switch powerUp.type {
+        case .laserSight:
+            activateLaserSight()
+        case .destructiveTouch:
+            activateDestructiveTouch()
+        }
+    }
+    
+    func deactivateActivePowerUp() {
+        guard let activePowerUpSlot = activePowerUpSlot else { return }
         
-        if block.hitPoints <= 0 {
-            removeBlock(block)
+        if let index = powerUpSlots.firstIndex(of: activePowerUpSlot) {
+            collectedPowerUps[index] = nil
+            _ = activePowerUpSlot.removePowerUp()
+        }
+        
+        powerUpIsActive = false
+        self.activePowerUpSlot = nil
+        updatePowerUpSlots()
+    }
+    
+    func activateLaserSight() {
+        isLaserSightActive = true
+    }
+    
+    func deactivateLaserSight() {
+        if powerUpIsActive {
+            isLaserSightActive = false
+            deactivateActivePowerUp()
+            shooter.hideLaserSight()
+        }
+    }
+    
+    func activateDestructiveTouch() {
+        guard !self.blocks.isEmpty else { return }
+        
+        isDestructiveTouchActive = true
+        shooter.alpha = 0.5
+        for block in self.blocks {
+            block.strokeColor = .white
+            let scaleUp = SKAction.scale(to: 1.05, duration: 0.5)
+            let scaleDown = SKAction.scale(to: 1.0, duration: 0.5)
+            let scaleSequence = SKAction.sequence([scaleUp, scaleDown])
+            let repeatScale = SKAction.repeatForever(scaleSequence)
+            block.run(repeatScale, withKey: "DestructiveTouchScale")
+        }
+        
+        if !self.bonusBalls.isEmpty {
+            for bonusBall in self.bonusBalls {
+                bonusBall.alpha = 0.5
+                bonusBall.pauseAnimation()
+            }
+        }
+        if !self.powerUpsOnBoard.isEmpty {
+            for powerUp in self.powerUpsOnBoard {
+                powerUp.alpha = 0.5
+                powerUp.pauseAnimation()
+            }
+        }
+        
+    }
+
+    func deactivateDestructiveTouch() {
+        for block in self.blocks {
+            block.strokeColor = .clear
+            block.removeAction(forKey: "DestructiveTouchScale")
+            block.setScale(1.0)
+        }
+        if !self.bonusBalls.isEmpty {
+            for bonusBall in self.bonusBalls {
+                bonusBall.alpha = 1.0
+                bonusBall.resumeAnimation()
+            }
+        }
+        if !self.powerUpsOnBoard.isEmpty {
+            for powerUp in self.powerUpsOnBoard {
+                powerUp.alpha = 1.0
+                powerUp.resumeAnimation()
+            }
+        }
+        isDestructiveTouchActive = false
+        deactivateActivePowerUp()
+        shooter.alpha = 1.0
+    }
+    
+    func clearPowerUps() {
+         for powerUp in powerUpsOnBoard {
+             powerUp.removeFromParent()
+         }
+         powerUpsOnBoard.removeAll()
+         
+         for (index, _) in collectedPowerUps.enumerated() {
+             collectedPowerUps[index] = nil
+         }
+         
+         updatePowerUpSlots()
+         
+         isLaserSightActive = false
+         isDestructiveTouchActive = false
+         powerUpIsActive = false
+         activePowerUpSlot = nil
+     }
+    
+}
+
+
+// MARK: Contact logic
+extension GameScene: SKPhysicsContactDelegate {
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        let collision = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+        
+        switch collision {
+        case PhysicsCategory.Ball | PhysicsCategory.BottomLine:
+            handleBallBottomLineCollision(contact)
+        case PhysicsCategory.Ball | PhysicsCategory.Block:
+            handleBallBlockCollision(contact)
+        case PhysicsCategory.Ball | PhysicsCategory.BonusBall:
+            handleBallBonusBallCollision(contact)
+        case PhysicsCategory.Ball | PhysicsCategory.PowerUp:
+            handleBallPowerUpCollision(contact)
+        default:
+            break
+        }
+    }
+    
+    func handleBallBlockCollision(_ contact: SKPhysicsContact) {
+        guard let blockNode = (contact.bodyA.categoryBitMask == PhysicsCategory.Block ? contact.bodyA.node : contact.bodyB.node) as? BlockNode else {
+            print("Warning: Expected a BlockNode in collision, but found something else.")
+            return
+        }
+
+        blockNode.hit()
+        
+        if blockNode.hitPoints <= 0 {
+            removeBlock(blockNode)
             gameInfo?.incrementScore(by: 1)
             gameStats.incrementScore(by: 1)
         }
+    }
+    
+    func handleBallBonusBallCollision(_ contact: SKPhysicsContact) {
+        guard let bonusBall = (contact.bodyA.categoryBitMask == PhysicsCategory.BonusBall ? contact.bodyA.node : contact.bodyB.node) as? BonusBallNode else {
+            print("Warning: Expected a BonusBallNode in collision, but found something else.")
+            return
+        }
+        
+        if !bonusBall.isCollected {
+            bonusBall.collect()
+            bonusBall.isCollected = true
+            if let index = bonusBalls.firstIndex(of: bonusBall) {
+                bonusBalls.remove(at: index)
+            }
+            
+            gameInfo?.incrementBallCount(by: 1)
+            gameStats.incrementBallCount(by: 1)
+        }
+    }
+
+    func handleBallPowerUpCollision(_ contact: SKPhysicsContact) {
+        guard let powerUp = (contact.bodyA.categoryBitMask == PhysicsCategory.PowerUp ? contact.bodyA.node : contact.bodyB.node) as? PowerUpNode else {
+            print("Warning: Expected a PowerUpNode in collision, but found something else.")
+            return
+        }
+         collectPowerUp(powerUp)
+     }
+    
+    func handleBallBottomLineCollision(_ contact: SKPhysicsContact) {
+        guard let ball = (contact.bodyA.categoryBitMask == PhysicsCategory.Ball ? contact.bodyA.node : contact.bodyB.node) as? BallNode else {
+            print("Warning: Expected a BallNode in collision, but found something else.")
+            return
+        }
+        ball.physicsBody?.velocity = .zero
+        ball.position.y = layoutInfo.bottomLineY
+        
+        checkForRoundEnd()
+    }
+    
+    func checkForRoundEnd() {
+        if activeBalls.allSatisfy({ $0.physicsBody?.velocity == .zero }) {
+            allBallsShot = false
+            context.stateMachine?.enter(ResolveShotState.self)
+        }
+    }
+}
+
+/// used in self.deactivatePowerUp()
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
     }
 }

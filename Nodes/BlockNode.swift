@@ -14,12 +14,12 @@ class BlockNode: SKShapeNode {
         self.hitPoints = hitPoints
         super.init()
         
-        let rect = CGRect(origin: .zero, size: size)
+        let rect = CGRect(origin: CGPoint(x: -size.width / 2, y: -size.height / 2), size: size)
         path = CGPath(rect: rect, transform: nil)
         
         fillColor = colorForHitPoints(hitPoints)
-        strokeColor = .white
-        lineWidth = 2
+        strokeColor = .clear
+        lineWidth = 4
         
         setupPhysics(size: size)
         setupLabel()
@@ -30,7 +30,7 @@ class BlockNode: SKShapeNode {
     }
     
     private func setupPhysics(size: CGSize) {
-        physicsBody = SKPhysicsBody(rectangleOf: size, center: CGPoint(x: size.width/2, y: size.height/2))
+        physicsBody = SKPhysicsBody(rectangleOf: size, center: .zero)
         physicsBody?.isDynamic = false
         physicsBody?.categoryBitMask = PhysicsCategory.Block
         physicsBody?.collisionBitMask = PhysicsCategory.Ball
@@ -40,10 +40,10 @@ class BlockNode: SKShapeNode {
     private func setupLabel() {
         let label = SKLabelNode(text: "\(hitPoints)")
         label.fontName = "Arial-Bold"
-        label.fontSize = 20
+        label.fontSize = 15
         label.fontColor = .black
         label.verticalAlignmentMode = .center
-        label.position = CGPoint(x: frame.midX, y: frame.midY)
+        label.position = CGPoint(x: frame.maxX - label.frame.width, y: frame.minY + label.frame.height)
         addChild(label)
     }
     

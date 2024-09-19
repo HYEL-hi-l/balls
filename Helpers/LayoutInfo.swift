@@ -13,8 +13,9 @@ struct LayoutInfo {
     
     var screenSize: CGSize = .zero
     var bottomLineY: CGFloat = .zero
+    var gameOverLineY: CGFloat = .zero
 
-    var blockSpacing: CGFloat = 10
+    var blockSpacing: CGFloat = 6
     var blockSize: CGSize = .zero
     
     var playAreaOffset: CGFloat = 0
@@ -23,6 +24,10 @@ struct LayoutInfo {
     
     var shooterSize: CGSize = .zero
     var shooterPos: CGPoint = .zero
+    
+    var powerUpSlotSpacing: CGFloat = 20
+    var powerUpSlotSize: CGSize = .zero
+    var powerUpSlotYPos: CGFloat = 0
     
     var fastForwardPos: CGPoint = .zero
     var fastForwardPadding: CGFloat = 25

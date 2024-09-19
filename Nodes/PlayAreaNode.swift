@@ -18,7 +18,7 @@ class PlayAreaNode: SKShapeNode {
         self.path = path
         self.position = position
         fillColor = .black
-        strokeColor = .white
+        strokeColor = .clear
         lineWidth = 2
         
         setupPhysics()

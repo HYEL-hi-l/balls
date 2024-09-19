@@ -9,7 +9,12 @@ import GameplayKit
 import SpriteKit
 
 class ShootingState: GameState {
+    
     private var bottomY: CGFloat = 0
+    
+    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+        return stateClass is ResolveShotState.Type
+    }
 
     override func didEnter(from previousState: GKState?) {
         print("ShootingState")
@@ -17,11 +22,15 @@ class ShootingState: GameState {
         bottomY = gameScene.shooter.position.y
         shootAllBalls()
         gameScene.fastForwardNode?.scheduleShow(in: 5.0)
+        gameScene.deactivateLaserSight()
     }
+    
+}
 
-    override func willExit(to nextState: GKState) {
-    }
 
+// MARK: Helpers
+extension ShootingState {
+    
     private func shootAllBalls() {
         let ballCount = gameScene.gameInfo!.ballCount
         for i in 0..<ballCount {
@@ -40,7 +49,5 @@ class ShootingState: GameState {
             }
         }
     }
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        return stateClass is ResolveShotState.Type
-    }
+    
 }

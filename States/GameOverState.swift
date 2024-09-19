@@ -9,13 +9,39 @@ import GameplayKit
 import SpriteKit
 
 class GameOverState: GameState {
+    
     private var gameOverNode: SKNode?
     private var replayButton: SKSpriteNode?
+    
+    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+        return stateClass is StartState.Type
+    }
 
     override func didEnter(from previousState: GKState?) {
+        print("GameOverState")
         super.didEnter(from: previousState)
-        
         showGameOverScreen()
+    }
+    
+    override func willExit(to nextState: GKState) {
+        gameOverNode?.removeFromParent()
+    }
+
+    override func handleTap(_ touchLocation: CGPoint) {
+        if let replayButton = replayButton, replayButton.contains(touchLocation) {
+            resetGame()
+            stateMachine?.enter(StartState.self)
+        }
+    }
+    
+}
+
+
+// MARK: Helpers
+extension GameOverState {
+    
+    private func resetGame() {
+        gameScene.reset()
     }
     
     private func showGameOverScreen() {
@@ -25,7 +51,6 @@ class GameOverState: GameState {
         let background = SKSpriteNode(color: .darkGray, size: CGSize(width: gameScene.size.width * 0.7, height: gameScene.size.height * 0.5))
         background.position = CGPoint(x: gameScene.size.width / 2, y: gameScene.size.height / 2)
         
-        // Show "Game Over" title
         let gameOverLabel = SKLabelNode(text: "Game Over")
         gameOverLabel.fontName = "Arial-Bold"
         gameOverLabel.fontSize = 40
@@ -63,26 +88,9 @@ class GameOverState: GameState {
         }
         
         if let gameOverNode = gameOverNode {
+            gameOverNode.zPosition = 1000
             gameScene.addChild(gameOverNode)
         }
     }
     
-    override func willExit(to nextState: GKState) {
-        gameOverNode?.removeFromParent()
-    }
-
-    override func handleTap(_ touchLocation: CGPoint) {
-        if let replayButton = replayButton, replayButton.contains(touchLocation) {
-            resetGame()
-            stateMachine?.enter(StartState.self)
-        }
-    }
-    
-    private func resetGame() {
-        gameScene.reset()
-    }
-
-    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        return stateClass is StartState.Type
-    }
 }
