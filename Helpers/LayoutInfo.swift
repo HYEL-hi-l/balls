@@ -8,7 +8,7 @@
 import UIKit
 
 struct LayoutInfo {
-    static let initialRows: Int = 4
+    static let initialRows: Int = 2
     var columns:Int = 7
     
     var screenSize: CGSize = .zero
@@ -31,6 +31,10 @@ struct LayoutInfo {
     
     var fastForwardPos: CGPoint = .zero
     var fastForwardPadding: CGFloat = 25
+    
+    var RoundCountNodePos: CGPoint = .zero
+    var RoundCountNodeSize: CGSize = .zero
+    var roundCountNodeOffset: CGFloat = 60
     
     var ballRadius: CGFloat = 10
     

@@ -57,13 +57,20 @@ class GameContext {
         layoutInfo.powerUpSlotYPos = (sectionUnderPlayArea * 0.58) - (layoutInfo.powerUpSlotSize.height / 2)
         
         let ffX = layoutInfo.playAreaPos.x + layoutInfo.playAreaSize.width / 2 - layoutInfo.fastForwardPadding
-        let ffY = layoutInfo.playAreaPos.y + layoutInfo.playAreaSize.height / 2 - layoutInfo.fastForwardPadding - 12.5
+        let ffY = layoutInfo.playAreaPos.y + layoutInfo.playAreaSize.height / 2 - (layoutInfo.fastForwardPadding * 1.3)
         layoutInfo.fastForwardPos =  CGPoint(x: ffX, y: ffY)
         
-        layoutInfo.bottomLineY = layoutInfo.shooterPos.y - layoutInfo.ballRadius * 1.4
+        layoutInfo.bottomLineY = layoutInfo.shooterPos.y - layoutInfo.ballRadius * 1.7
         layoutInfo.gameOverLineY = layoutInfo.shooterPos.y
+        
         let combinedBlockEdgeLength = layoutInfo.playAreaSize.width - (CGFloat(layoutInfo.columns + 1) * layoutInfo.blockSpacing)
         let blockEdgeLength = combinedBlockEdgeLength / Double(layoutInfo.columns)
         layoutInfo.blockSize = CGSize(width: blockEdgeLength, height: blockEdgeLength)
+        
+        let roundCountNodeX = layoutInfo.playAreaPos.x
+        let roundCountNodeY = layoutInfo.playAreaPos.y + layoutInfo.playAreaSize.height / 2 + layoutInfo.roundCountNodeOffset
+        layoutInfo.RoundCountNodePos =  CGPoint(x: roundCountNodeX, y: roundCountNodeY)
+        let roundCountNodeHeight = layoutInfo.blockSize.height * 1.35
+        layoutInfo.RoundCountNodeSize =  CGSize(width: roundCountNodeHeight * 2, height: roundCountNodeHeight)
     }
 }

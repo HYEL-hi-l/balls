@@ -77,7 +77,7 @@ extension StartState {
             label1.zPosition = 10
             gameScene.addChild(label1)
             
-            label2.fontName = "Arial"
+            label2.fontName = "Arial Italic"
             label2.fontSize = 12
             label2.fontColor = .lightGray
             label2.position = CGPoint(x: gameScene.frame.midX, y: label1.position.y - 30)
@@ -114,7 +114,7 @@ extension StartState {
             label1.zPosition = 10
             gameScene.addChild(label1)
             
-            label2.fontName = "Arial"
+            label2.fontName = "Arial Italic"
             label2.fontSize = 12
             label2.fontColor = .lightGray
             label2.position = CGPoint(x: gameScene.frame.midX, y: label1.position.y - 30)
@@ -131,11 +131,11 @@ extension StartState {
     }
     
     private func animateIntro() {
-        guard !gameScene.textureAtlas.textureNames.isEmpty else { return }
+        guard !gameScene.ballsAtlas.textureNames.isEmpty else { return }
         
         for _ in 0..<100 {
-            let randomTextureName = gameScene.textureAtlas.textureNames.randomElement() ?? "watermelon"
-            let randomTexture = gameScene.textureAtlas.textureNamed(randomTextureName)
+            let randomTextureName = gameScene.ballsAtlas.textureNames.randomElement() ?? "watermelon"
+            let randomTexture = gameScene.ballsAtlas.textureNamed(randomTextureName)
             
             let ball = SKSpriteNode(texture: randomTexture, size: CGSize(width: 20, height: 20))
             ball.position = CGPoint(x: CGFloat.random(in: 0..<gameScene.frame.width),
@@ -169,7 +169,7 @@ extension StartState {
             for i in 0..<numberOfBlocks {
                 let col = availableColumns[i]
                 let hitPoints = Int.random(in: 1...3)
-                let block = BlockNode(size: blockSize, hitPoints: hitPoints)
+                let block = BlockNode(size: blockSize, hitPoints: hitPoints, atlas: gameScene.blocksAtlas)
                 
                 let x = CGFloat(col) * (blockSize.width + gameScene.layoutInfo.blockSpacing) + blockSize.width / 2 + gameScene.layoutInfo.blockSpacing
                 let y = startY - CGFloat(row) * (blockSize.height + gameScene.layoutInfo.blockSpacing)

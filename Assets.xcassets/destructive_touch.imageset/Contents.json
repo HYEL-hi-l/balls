@@ -1,16 +1,17 @@
 {
   "images" : [
     {
+      "filename" : "Group 16856.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "wm_handOfGod_tutorial@2x.png",
+      "filename" : "Group 16856@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "wm_handOfGod_tutorial@3x.png",
+      "filename" : "Group 16856@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

@@ -1,0 +1,9 @@
+<svg width="23" height="19" viewBox="0 0 23 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M18.6033 13.3699C16.6593 11.5293 13.9846 10.3952 11.0313 10.3952C8.0779 10.3952 5.40322 11.5326 3.45923 13.3699" stroke="#090C12" stroke-width="1.05" stroke-miterlimit="10" stroke-linecap="round"/>
+<path d="M2.77295 17.6968C3.46417 16.3975 3.6785 14.8072 3.25536 13.228C2.83222 11.6488 1.84974 10.3792 0.603183 9.5991" stroke="#090C12" stroke-width="1.05" stroke-miterlimit="10" stroke-linecap="round"/>
+<path d="M21.5293 9.85428C20.281 10.6339 19.3003 11.904 18.8771 13.4832C18.454 15.0624 18.67 16.6531 19.3595 17.952" stroke="#090C12" stroke-width="1.05" stroke-miterlimit="10" stroke-linecap="round"/>
+<line x1="15.5837" y1="4.08265" x2="21.0811" y2="5.63107" stroke="#090C12" stroke-width="1.05" stroke-miterlimit="10" stroke-linecap="round"/>
+<line x1="15.3987" y1="3.86398" x2="20.3448" y2="1.00833" stroke="#090C12" stroke-width="1.05" stroke-miterlimit="10" stroke-linecap="round"/>
+<line x1="0.525" y1="-0.525" x2="6.2363" y2="-0.525" transform="matrix(-0.962547 0.271116 0.271116 0.962547 7.38184 4.44565)" stroke="#090C12" stroke-width="1.05" stroke-miterlimit="10" stroke-linecap="round"/>
+<line x1="0.525" y1="-0.525" x2="6.2363" y2="-0.525" transform="matrix(-0.866025 -0.5 -0.5 0.866025 7.11133 4.58115)" stroke="#090C12" stroke-width="1.05" stroke-miterlimit="10" stroke-linecap="round"/>
+</svg>

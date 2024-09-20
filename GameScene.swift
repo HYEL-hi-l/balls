@@ -17,15 +17,18 @@ class GameScene: SKScene {
     var gameInfo: GameInfo? { context.gameInfo }
     var layoutInfo: LayoutInfo { context.layoutInfo }
     
-    let textureAtlas = SKTextureAtlas(named: "BallsAtlas")
+    let ballsAtlas = SKTextureAtlas(named: "BallsAtlas")
+    let blocksAtlas = SKTextureAtlas(named: "BlocksAtlas")
     
     private var background: BackgroundNode!
     private var bottomLine: SKShapeNode!
     var playArea: PlayAreaNode!
     var shooter: ShooterNode!
-    var gameStats: GameStatsNode!
+    var showRoundNode: RoundCountNode!
     var fastForwardNode: FastForwardNode!
     var ballCountNode: BallCountNode!
+    private var topWindow: SKShapeNode!
+    private var bottomWindow: SKShapeNode!
     private var noMansLand: SKNode!
 
     var balls: [BallNode] = []
@@ -46,7 +49,7 @@ class GameScene: SKScene {
     var firstBallToHitBottom: BallNode?
     
     private let minVerticalVelocity: CGFloat = 15
-    private let stuckThreshold: CGFloat = 10
+    private let stuckThreshold: CGFloat = 15
     private let stuckTimeThreshold: TimeInterval = 10.0
 
     
@@ -63,21 +66,27 @@ class GameScene: SKScene {
         setupPlayArea()
         setupShooter()
         setupBottomLine()
-        setupGameStats()
+        setupRoundCountNode()
         setupFastForwardNode()
         setupPowerUpSlots()
         setupBallCountNode()
+        setupWindows()
         setupNoMansLand()
         
-        textureAtlas.preload {
+        ballsAtlas.preload {
             self.context.stateMachine?.enter(StartState.self)
         }
+        blocksAtlas.preload {
+            self.createBlockEmitter(at: CGPoint(x: -self.layoutInfo.screenSize.width, y: -self.layoutInfo.screenSize.height), texture: self.blocksAtlas.textureNamed("happy"), size: self.layoutInfo.blockSize, color: .white)
+        }
+
     }
     
     func reset() {
-        gameStats.reset()
+        showRoundNode.reset()
         gameInfo?.reset()
         shooter.position = layoutInfo.shooterPos
+        shooter.shooterBody.zRotation = 0
         shooter.reset()
         shooter.shooterBody.isHidden = false
         
@@ -116,8 +125,8 @@ extension GameScene {
     }
     
     func setupShooter() {
-        shooter = ShooterNode(size: layoutInfo.shooterSize)
-        shooter.position = CGPoint(x: self.size.width / 2, y: playArea.frame.minY + 30)
+        shooter = ShooterNode(size: layoutInfo.shooterSize, ballRadius: layoutInfo.ballRadius)
+        shooter.position = layoutInfo.shooterPos
         shooter.zPosition = 2
         addChild(shooter)
     }
@@ -140,9 +149,10 @@ extension GameScene {
         
         addChild(bottomLine)
     }
-    func setupGameStats() {
-        gameStats = GameStatsNode(size: self.size)
-        addChild(gameStats)
+    func setupRoundCountNode() {
+        showRoundNode = RoundCountNode(size: layoutInfo.RoundCountNodeSize)
+        showRoundNode.position = layoutInfo.RoundCountNodePos
+        addChild(showRoundNode)
     }
     
     func setupFastForwardNode() {
@@ -161,6 +171,7 @@ extension GameScene {
         for i in 0..<4 {
             let slot = PowerUpSlotNode(size: slotSize)
             slot.position = CGPoint(x: startX + (CGFloat(i) * (slotSize.width + spacing)), y: CGFloat(bottomY) + slotSize.height / 2)
+            slot.zPosition = 1
             addChild(slot)
             powerUpSlots.append(slot)
         }
@@ -174,6 +185,29 @@ extension GameScene {
         addChild(ballCountNode)
         updateBallCountDisplay()
     }
+    
+    func setupWindows() {
+        let topWindowHeight: CGFloat = layoutInfo.screenSize.height - (layoutInfo.playAreaPos.y + layoutInfo.playAreaSize.height / 2)
+        let bottomWindowHeight: CGFloat = layoutInfo.screenSize.height - (layoutInfo.playAreaPos.y + layoutInfo.playAreaSize.height / 2)
+        let fillColor: UIColor = .white.withAlphaComponent(0.1)
+        let strokeColor: UIColor = .white
+        let lineWidth: CGFloat = 3
+        
+        topWindow = SKShapeNode(rect: CGRect(x: layoutInfo.playAreaPos.x - layoutInfo.playAreaSize.width / 2 - lineWidth, y: layoutInfo.playAreaPos.y + layoutInfo.playAreaSize.height / 2, width: layoutInfo.playAreaSize.width + lineWidth * 2, height: topWindowHeight + lineWidth))
+        topWindow.fillColor = fillColor
+        topWindow.strokeColor = strokeColor
+        topWindow.lineWidth = lineWidth
+        topWindow.zPosition = 0
+        addChild(topWindow)
+        
+        bottomWindow = SKShapeNode(rect: CGRect(x: layoutInfo.playAreaPos.x - layoutInfo.playAreaSize.width / 2 - lineWidth, y: 0, width: layoutInfo.playAreaSize.width + lineWidth * 2, height: bottomWindowHeight + lineWidth))
+        bottomWindow.fillColor = fillColor
+        bottomWindow.strokeColor = strokeColor
+        bottomWindow.lineWidth = lineWidth
+        bottomWindow.zPosition = 0
+        addChild(bottomWindow)
+    }
+
     
     private func setupNoMansLand() {
         noMansLand = SKNode()
@@ -208,6 +242,7 @@ extension GameScene {
         
         addChild(noMansLand)
     }
+    
 }
 
 
@@ -216,19 +251,19 @@ extension GameScene {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 
-        guard let touch = touches.first else { return }
+        guard let touch = touches.first else { print("failtouchesbegan"); return }
         let location = touch.location(in: self)
         
         if fastForwardNode.contains(location) && fastForwardNode.isTappable && !isDestructiveTouchActive {
             fastForwardNode.toggleBallSpeed()
         }
-        
-        if !isDestructiveTouchActive, let currentState = context.stateMachine?.currentState as? TapHandler {
-            currentState.handleTap(location)
-        }
-        
-        if !powerUpIsActive, let _ = context.stateMachine?.currentState as? IdleState {
+    
+        if isDestructiveTouchActive {
+            handleDestructiveTouch(at: location)
+        } else if !powerUpIsActive, !playArea.frame.contains(location), let _ = context.stateMachine?.currentState as? IdleState {
             handlePowerUpSlotTap(at: location)
+        } else if let currentState = context.stateMachine?.currentState as? TapHandler {
+            currentState.handleTap(location)
         }
     }
 
@@ -246,12 +281,11 @@ extension GameScene {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first,
               let state = context.stateMachine?.currentState as? IdleState else {
+            print("touchesEnded: state machine not idle")
             return
         }
         let location = touch.location(in: self)
-        if isDestructiveTouchActive {
-            handleDestructiveTouch(at: location)
-        } else {
+        if !isDestructiveTouchActive {
             state.handleTouchesEnded(location)
         }
     }
@@ -259,9 +293,17 @@ extension GameScene {
     private func handlePowerUpSlotTap(at location: CGPoint) {
         for slot in powerUpSlots {
             if slot.contains(location), let powerUp = slot.powerUp {
-                activePowerUpSlot = slot
-                activatePowerUp(powerUp)
-                slot.activate()
+                if powerUp.type == .destructiveTouch {
+                    if !blocks.isEmpty {
+                        activePowerUpSlot = slot
+                        activatePowerUp(powerUp)
+                        slot.activate()
+                    }
+                } else {
+                    activePowerUpSlot = slot
+                    activatePowerUp(powerUp)
+                    slot.activate()
+                }
                 break
             }
         }
@@ -271,7 +313,6 @@ extension GameScene {
         if let tappedNode = atPoint(location) as? BlockNode {
             removeBlock(tappedNode)
             gameInfo?.incrementScore(by: tappedNode.hitPoints)
-            gameStats.incrementScore(by: tappedNode.hitPoints)
             deactivateDestructiveTouch()
         }
     }
@@ -298,7 +339,6 @@ extension GameScene {
                     ball.stuckStartTime = currentTime
                     ball.stuckPosition = ball.position
                 } else if currentTime - ball.stuckStartTime! > stuckTimeThreshold {
-                    print("IMPULSE", ball.stuckPosition)
                     let impulse = CGVector(dx: 0, dy: ball.physicsBody?.velocity.dy ?? 0 <= 0 ? 5 : -5)
                     ball.physicsBody?.applyImpulse(impulse)
                     ball.stuckStartTime = nil
@@ -322,16 +362,16 @@ extension GameScene {
 // MARK: Ball logic
 extension GameScene {
     func createBall() -> BallNode {
-        let ball = BallNode(type: .normal, radius: layoutInfo.ballRadius, atlas: textureAtlas)
+        let ball = BallNode(type: .normal, radius: layoutInfo.ballRadius, atlas: ballsAtlas)
         ball.position = shooter.position
         balls.append(ball)
-        activeBalls.append(ball)
         addChild(ball)
         return ball
     }
     
     func shootBall(_ ball: BallNode) {
         shooter.shoot(ball)
+        activeBalls.append(ball)
         let velocity = ball.physicsBody?.velocity
         let multiplier = gameInfo?.ballSpeedMultiplier ?? 1
         let newVelocity = CGVector(dx: (velocity?.dx ?? 0) * multiplier, dy: (velocity?.dy ?? 0) * multiplier)
@@ -376,7 +416,7 @@ extension GameScene {
     }
         
     func addBonusBall(at position: CGPoint) {
-        let bonusBall = BonusBallNode(position: position, radius: layoutInfo.blockSize.width * 0.3)
+        let bonusBall = BonusBallNode(position: position, radius: layoutInfo.blockSize.width * 0.3, atlas: ballsAtlas)
         bonusBalls.append(bonusBall)
         addChild(bonusBall)
         animateExtraItem(bonusBall, at: position)
@@ -388,10 +428,10 @@ extension GameScene {
         
         let dropAction = SKAction.moveTo(y: position.y, duration: 0.2)
         let bounceAction = SKAction.sequence([
-            SKAction.moveBy(x: 0, y: 8, duration: 0.1),
-            SKAction.moveBy(x: 0, y: -8, duration: 0.1)
+            SKAction.moveBy(x: 0, y: 4, duration: 0.1),
+            SKAction.moveBy(x: 0, y: -4, duration: 0.1)
         ])
-        let fadeInAction = SKAction.fadeIn(withDuration: 0.4)
+        let fadeInAction = SKAction.fadeIn(withDuration: 0.2)
         
         let animationSequence = SKAction.sequence([
             SKAction.group([dropAction, fadeInAction]),
@@ -420,6 +460,7 @@ extension GameScene {
         if isLaserSightActive {
             shooter.showLaserSight()
         }
+        shooter.shooterBody.texture = SKTexture(imageNamed: "raspberry_shooting")
     }
     
     func updateAiming(to point: CGPoint) {
@@ -432,12 +473,14 @@ extension GameScene {
     
     func disableAiming() {
         isAimingEnabled = false
+        shooter.shooterBody.texture = SKTexture(imageNamed: "raspberry")
+        shooter.hideAimLine()
     }
     
     func cancelAiming() {
         shooter.hideAimLine()
-        shooter.shooterBody.isHidden = false
         shooter.hideLaserSight()
+        shooter.shooterBody.texture = SKTexture(imageNamed: "raspberry")
     }
 }
 
@@ -454,6 +497,9 @@ extension GameScene {
             blocks.remove(at: index)
         }
         block.removeFromParent()
+        gameInfo?.incrementScore(by: 1)
+        createBlockEmitter(at: block.position, texture: blocksAtlas.textureNamed("CC_Happy"), size: layoutInfo.blockSize, color: block.fillColor)
+
     }
     
     func clearBlocks() {
@@ -461,6 +507,21 @@ extension GameScene {
             block.removeFromParent()
         }
         blocks.removeAll()
+    }
+    
+    private func createBlockEmitter(at position: CGPoint, texture: SKTexture, size: CGSize, color: UIColor) {
+        guard let emitter = SKEmitterNode(fileNamed: "BlockExplosionEmitter") else { return }
+        emitter.position = position
+        emitter.particleTexture = texture
+        emitter.particleColor = color
+        emitter.zPosition = 1
+        emitter.particlePositionRange = CGVector(dx: size.width, dy: size.height)
+        
+        addChild(emitter)
+        
+        let wait = SKAction.wait(forDuration: emitter.particleLifetime + emitter.particleLifetimeRange)
+        let remove = SKAction.removeFromParent()
+        emitter.run(SKAction.sequence([wait, remove]))
     }
 }
 
@@ -494,11 +555,19 @@ extension GameScene {
     func updatePowerUpSlots() {
         for (index, powerUp) in collectedPowerUps.enumerated() {
             powerUpSlots[index].powerUp = powerUp
+            powerUpSlots[index].dimPowerUp(isDimmed: true)
         }
     }
     
     func activatePowerUp(_ powerUp: PowerUpNode) {
         powerUpIsActive = true
+        
+        for slot in powerUpSlots {
+            if slot.powerUp != nil && slot.powerUp != powerUp {
+                slot.dimPowerUp(isDimmed: true)
+            }
+        }
+
         switch powerUp.type {
         case .laserSight:
             activateLaserSight()
@@ -518,6 +587,14 @@ extension GameScene {
         powerUpIsActive = false
         self.activePowerUpSlot = nil
         updatePowerUpSlots()
+        
+        if let state = context.stateMachine?.currentState as? IdleState {
+            for slot in powerUpSlots {
+                if slot.powerUp != nil {
+                    slot.dimPowerUp(isDimmed: false)
+                }
+            }
+        }
     }
     
     func activateLaserSight() {
@@ -538,9 +615,10 @@ extension GameScene {
         isDestructiveTouchActive = true
         shooter.alpha = 0.5
         for block in self.blocks {
-            block.strokeColor = .white
-            let scaleUp = SKAction.scale(to: 1.05, duration: 0.5)
-            let scaleDown = SKAction.scale(to: 1.0, duration: 0.5)
+            block.strokeColor = UIColor(hex: "E2FF33")
+            block.lineWidth = 3
+            let scaleUp = SKAction.scale(to: 0.9, duration: 0.5)
+            let scaleDown = SKAction.scale(to: 1.05, duration: 0.5)
             let scaleSequence = SKAction.sequence([scaleUp, scaleDown])
             let repeatScale = SKAction.repeatForever(scaleSequence)
             block.run(repeatScale, withKey: "DestructiveTouchScale")
@@ -564,6 +642,7 @@ extension GameScene {
     func deactivateDestructiveTouch() {
         for block in self.blocks {
             block.strokeColor = .clear
+            block.lineWidth = 0
             block.removeAction(forKey: "DestructiveTouchScale")
             block.setScale(1.0)
         }
@@ -641,8 +720,6 @@ extension GameScene: SKPhysicsContactDelegate {
         
         if blockNode.hitPoints <= 0 {
             removeBlock(blockNode)
-            gameInfo?.incrementScore(by: 1)
-            gameStats.incrementScore(by: 1)
         }
     }
     
@@ -660,7 +737,6 @@ extension GameScene: SKPhysicsContactDelegate {
             }
             
             gameInfo?.incrementBallCount(by: 1)
-            gameStats.incrementBallCount(by: 1)
         }
     }
 
@@ -677,6 +753,8 @@ extension GameScene: SKPhysicsContactDelegate {
                 print("Warning: Expected a BallNode in collision, but found something else.")
                 return
             }
+        
+        guard activeBalls.contains(ball) else { return }
 
             if firstBallToHitBottom == nil {
                 firstBallToHitBottom = ball
@@ -684,12 +762,12 @@ extension GameScene: SKPhysicsContactDelegate {
                     
             ball.physicsBody?.isDynamic = false
             ball.physicsBody?.velocity = .zero
-      
+        
             if let index = activeBalls.firstIndex(of: ball) {
                 activeBalls.remove(at: index)
             }
             
-            updateBallPositions()
+            updateBallPosition(ball)
         }
 
     func handleBallNoMansLandCollision(_ contact: SKPhysicsContact) {
@@ -710,33 +788,28 @@ extension GameScene: SKPhysicsContactDelegate {
         checkForRoundEnd()
      }
     
-    private func updateBallPositions() {
+    private func updateBallPosition(_ ball: BallNode) {
             let finalYPosition = layoutInfo.bottomLineY
             let animationDuration: TimeInterval = 0.1
-
-            for ball in balls {
-                if ball.position.y <= finalYPosition + layoutInfo.ballRadius * 2 {
-                    
-                    let moveAction = SKAction.move(to: CGPoint(x: firstBallToHitBottom?.position.x ?? ball.position.x, y: finalYPosition), duration: animationDuration)
-                    let fadeAction = SKAction.fadeAlpha(to: 0.5, duration: animationDuration)
-                    let scaleAction = SKAction.scale(to: 1.2, duration: animationDuration/2)
-                    let scaleBackAction = SKAction.scale(to: 1.0, duration: animationDuration/2)
-                    let sequenceAction = SKAction.sequence([
-                        SKAction.group([moveAction, fadeAction, scaleAction]),
-                        scaleBackAction
-                    ])
-                    
-                    ball.run(sequenceAction) {
-                        ball.physicsBody?.isDynamic = false
-                        ball.physicsBody?.velocity = .zero
-                        self.checkForRoundEnd()
-                    }
-                }
+            
+            let moveAction = SKAction.move(to: CGPoint(x: firstBallToHitBottom?.position.x ?? ball.position.x, y: finalYPosition), duration: animationDuration)
+            let fadeAction = SKAction.fadeAlpha(to: 0.5, duration: animationDuration)
+            let scaleAction = SKAction.scale(to: 1.2, duration: animationDuration/2)
+            let scaleBackAction = SKAction.scale(to: 1.0, duration: animationDuration/2)
+            let sequenceAction = SKAction.sequence([
+                SKAction.group([moveAction, fadeAction, scaleAction]),
+                scaleBackAction
+            ])
+            
+            ball.run(sequenceAction) {
+                ball.physicsBody?.isDynamic = false
+                ball.physicsBody?.velocity = .zero
+                self.checkForRoundEnd()
             }
         }
 
     func checkForRoundEnd() {
-        if activeBalls.isEmpty {
+        if activeBalls.isEmpty && allBallsShot == true {
             allBallsShot = false
             context.stateMachine?.enter(ResolveShotState.self)
         }

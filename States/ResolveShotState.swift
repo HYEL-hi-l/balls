@@ -16,7 +16,7 @@ class ResolveShotState: GameState {
         return stateClass is IdleState.Type || stateClass is GameOverState.Type
     }
     
-    override func didEnter(from previousState: GKState?) {        
+    override func didEnter(from previousState: GKState?) {
         gameScene.fastForwardNode?.cancelShow()
         gameScene.gameInfo?.ballSpeedMultiplier = 1
         gameScene.fastForwardNode?.resetSpeed()
@@ -24,7 +24,22 @@ class ResolveShotState: GameState {
         collectBallsAndMoveShooter() {
             self.shiftBlocksDown() {
                 if self.isGameOver() {
-                    self.stateMachine?.enter(GameOverState.self)
+                    let dispatchGroup = DispatchGroup()
+                    for (i, block) in self.gameScene.blocks.enumerated() {
+                        dispatchGroup.enter()
+                        let delay = SKAction.wait(forDuration: 0.025 * Double(i))
+                        let shoot = SKAction.run { [weak self] in
+                            self?.gameScene.removeBlock(block)
+                        }
+                        let sequence = SKAction.sequence([delay, shoot])
+                        self.gameScene.run(sequence) {
+                            dispatchGroup.leave()
+                        }
+                    }
+                    
+                    dispatchGroup.notify(queue: .main){
+                        self.stateMachine?.enter(GameOverState.self)
+                    }
                 } else {
                     self.addNewBlockRow() {
                         self.updateGameInfo()
@@ -53,8 +68,7 @@ extension ResolveShotState {
     
     private func updateGameInfo() {
         gameScene.gameInfo?.incrementRound()
-        gameScene.gameStats.incrementRound()
-        gameScene.gameInfo?.incrementBallCount(by: 1)
+        gameScene.showRoundNode.incrementRound()
         gameScene.remainingBalls = gameScene.gameInfo?.ballCount ?? 1
         gameScene.updateBallCountDisplay()
     }
@@ -65,14 +79,10 @@ extension ResolveShotState {
             completion()
             return
         }
-
-        let ballsToCollect = gameScene.balls.filter { $0 != firstBall }
         
-        animateBallCollection(ballsToCollect, to: firstBall.position) {
-            self.moveShooterToPosition(firstBall.position) {
-                self.gameScene.firstBallToHitBottom = nil
-                completion()
-            }
+        self.moveShooterToPosition(firstBall.position) {
+            self.gameScene.firstBallToHitBottom = nil
+            completion()
         }
     }
     
@@ -82,9 +92,9 @@ extension ResolveShotState {
             return
         }
         
-        let dispatchGroup = DispatchGroup()
+        let ballDispatchGroup = DispatchGroup()
         for (index, ball) in balls.enumerated() {
-            dispatchGroup.enter()
+            ballDispatchGroup.enter()
             
             let delay = TimeInterval(index) * 0.05
             let moveAction = SKAction.move(to: position, duration: 0.2)
@@ -96,11 +106,11 @@ extension ResolveShotState {
                 SKAction.removeFromParent()
             ])
             ball.run(sequence) {
-                dispatchGroup.leave()
+                ballDispatchGroup.leave()
             }
         }
         
-        dispatchGroup.notify(queue: .main) {
+        ballDispatchGroup.notify(queue: .main) {
             completion()
         }
     }
@@ -126,22 +136,31 @@ extension ResolveShotState {
         
         let moveAction = SKAction.moveBy(x: 0, y: -shiftDistance, duration: moveDuration)
         
-        let dispatchGroup = DispatchGroup()
+        let blockDispatchGroup = DispatchGroup()
+        blockDispatchGroup.enter()
         
         for block in gameScene.blocks {
-            dispatchGroup.enter()
+            blockDispatchGroup.enter()
             block.run(moveAction) {
-                dispatchGroup.leave()
+                blockDispatchGroup.leave()
             }
         }
         for bonusBall in gameScene.bonusBalls {
             bonusBall.run(moveAction)
         }
         for powerUp in gameScene.powerUpsOnBoard {
-            powerUp.run(moveAction)
+            powerUp.run(moveAction) {
+                let gameOverLineY = self.gameScene.layoutInfo.gameOverLineY
+                let powerUpBottom = powerUp.position.y - self.gameScene.layoutInfo.blockSize.height
+                if powerUpBottom <= gameOverLineY {
+                    powerUp.removeFromParent()
+                }
+            }
         }
         
-        dispatchGroup.notify(queue: .main) {
+        blockDispatchGroup.leave()
+        
+        blockDispatchGroup.notify(queue: .main) {
             completion()
         }
     }
@@ -153,9 +172,9 @@ extension ResolveShotState {
         let topSpaceOffset = (blockSize.height + 10) * 1.5
         let topY = playAreaTop - topSpaceOffset
         
-        let currentRound = gameScene.gameInfo?.round ?? 1
+        let nextRound = (gameScene.gameInfo?.round ?? 1) + 1
         
-        let blockCountWeights = [1, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 6, 6, 7]
+        let blockCountWeights = [2, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 7, 7]
         let numberOfBlocks = blockCountWeights.randomElement() ?? 4
         
         var availableColumns = Array(0..<columns)
@@ -167,75 +186,64 @@ extension ResolveShotState {
             doubleBlockCount = 3
         } else if random < 0.3 && numberOfBlocks >= 2 {
             doubleBlockCount = 2
-        } else if random < 0.5 && numberOfBlocks >= 1 {
+        } else if random < 0.6 && numberOfBlocks >= 1 {
             doubleBlockCount = 1
         } else {
             doubleBlockCount = 0
         }
         
-        var doubleBlockIndices = Array(0..<numberOfBlocks).shuffled().prefix(doubleBlockCount)
-        
-        
-        var emptyColumns = availableColumns
-        
+        let doubleBlockIndices = Array(0..<numberOfBlocks).shuffled().prefix(doubleBlockCount)
+        let bonusBallIndex = Int.random(in: 0..<numberOfBlocks)
+
         let dispatchGroup = DispatchGroup()
-
-        for i in 0..<numberOfBlocks {
-            let col = availableColumns[i]
-            
-            emptyColumns.removeAll { $0 == col }
-            
-            let x = CGFloat(col) * (blockSize.width + gameScene.layoutInfo.blockSpacing) + blockSize.width / 2 + gameScene.layoutInfo.blockSpacing
-            let y = topY
-            
-            var hitPoints = currentRound
-            
-            if doubleBlockIndices.contains(i) {
-                hitPoints = currentRound * 2
+            for i in 0..<numberOfBlocks {
+                let col = availableColumns[i]
+                let x = CGFloat(col) * (blockSize.width + gameScene.layoutInfo.blockSpacing) + blockSize.width / 2 + gameScene.layoutInfo.blockSpacing
+                let y = topY
+                
+                if i == bonusBallIndex {
+                    dispatchGroup.enter()
+                    gameScene.addBonusBall(at: CGPoint(x: x, y: y))
+                    dispatchGroup.leave()
+                } else {
+                    var hitPoints = nextRound
+                    
+                    if doubleBlockIndices.contains(i) {
+                        hitPoints = nextRound * 2
+                    }
+                    
+                    let blockNode = BlockNode(size: blockSize, hitPoints: hitPoints, atlas: gameScene.blocksAtlas)
+                    
+                    blockNode.position = CGPoint(x: x, y: y + gameScene.size.height)
+                    gameScene.addChild(blockNode)
+                    gameScene.blocks.append(blockNode)
+                    
+                    let dropAction = SKAction.moveTo(y: y, duration: 0.2)
+                    let bounceAction = SKAction.sequence([
+                        SKAction.moveBy(x: 0, y: 4, duration: 0.1),
+                        SKAction.moveBy(x: 0, y: -4, duration: 0.1)
+                    ])
+                    let fadeInAction = SKAction.fadeIn(withDuration: 0.2)
+                    
+                    let animationSequence = SKAction.sequence([
+                        SKAction.group([dropAction, fadeInAction]),
+                        bounceAction
+                    ])
+                    
+                    dispatchGroup.enter()
+                    blockNode.run(SKAction.sequence([
+                        SKAction.wait(forDuration: Double(i) * 0.1),
+                        animationSequence
+                    ])) {
+                        dispatchGroup.leave()
+                    }
+                }
             }
-            
-            let blockNode = BlockNode(size: blockSize, hitPoints: hitPoints)
-            
-            blockNode.position = CGPoint(x: x, y: y + gameScene.size.height)
-            gameScene.addChild(blockNode)
-            gameScene.blocks.append(blockNode)
-            
-            let dropAction = SKAction.moveTo(y: y, duration: 0.2)
-            let bounceAction = SKAction.sequence([
-                SKAction.moveBy(x: 0, y: 8, duration: 0.1),
-                SKAction.moveBy(x: 0, y: -8, duration: 0.1)
-            ])
-            let fadeInAction = SKAction.fadeIn(withDuration: 0.3)
-            
-            let animationSequence = SKAction.sequence([
-                SKAction.group([dropAction, fadeInAction]),
-                bounceAction
-            ])
-            
-            dispatchGroup.enter()
-            blockNode.run(SKAction.sequence([
-                SKAction.wait(forDuration: Double(i) * 0.1),
-                animationSequence
-            ])) {
-                dispatchGroup.leave()
-            }
-        }
         
-        if !emptyColumns.isEmpty && Double.random(in: 0...1) < 1.0 {
+        if numberOfBlocks < columns && Double.random(in: 0...1) < 0.05 {
             dispatchGroup.enter()
-
-            let randomEmptyColumn = emptyColumns.randomElement()!
-            let x = CGFloat(randomEmptyColumn) * (blockSize.width + gameScene.layoutInfo.blockSpacing) + gameScene.layoutInfo.blockSpacing + (blockSize.width / 2)
-            let y = topY
-            gameScene.addBonusBall(at: CGPoint(x: x, y: y))
-            emptyColumns.removeAll { $0 == randomEmptyColumn }
             
-            dispatchGroup.leave()
-        }
-        
-        if !emptyColumns.isEmpty && Double.random(in: 0...1) < 1.0 {
-            dispatchGroup.enter()
-
+            let emptyColumns = availableColumns[numberOfBlocks..<columns]
             let randomEmptyColumn = emptyColumns.randomElement()!
             let x = CGFloat(randomEmptyColumn) * (blockSize.width + gameScene.layoutInfo.blockSpacing) + gameScene.layoutInfo.blockSpacing + (blockSize.width / 2)
             let y = topY
