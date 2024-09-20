@@ -11,7 +11,7 @@ import SwiftUI
 
 struct ContentView: View {
 
-    let context = GameContext()
+    let context = FSGameContext()
 
     var body: some View {
         ZStack {
