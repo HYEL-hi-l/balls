@@ -11,6 +11,7 @@ class ShooterNode: SKNode {
     let shooterBody: SKSpriteNode
     private let aimLine: TargetLineNode
     private var laserSight: SKShapeNode?
+    private var thunder: SKSpriteNode?
     
     private let minAngleOffset: CGFloat = .pi / 36
     private let maxBounces: Int = 5
@@ -41,6 +42,7 @@ class ShooterNode: SKNode {
         addChild(aimLine)
         
         setupLaserSight()
+        setupThunder()
     }
     
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -104,6 +106,51 @@ extension ShooterNode {
         shooterBody.zRotation = rotation
     }
     
+}
+
+
+// MARK: Thunder Sprite
+extension ShooterNode {
+    
+    private func setupThunder() {
+        thunder = SKSpriteNode(texture: SKTexture(imageNamed: "thunder"))
+        thunder?.size = CGSize(width: shooterBody.size.width * 0.4, height: shooterBody.size.height * 0.4)
+        thunder?.position = CGPoint(x: shooterBody.size.width / 2, y: -shooterBody.size.height / 2)
+        thunder?.zPosition = 1
+        thunder?.isHidden = true
+        addChild(thunder!)
+    }
+    
+    func showThunder() {
+        thunder?.isHidden = false
+        thunder?.run(SKAction.sequence([
+            SKAction.scale(to: 1.2, duration: 0.1),
+            SKAction.scale(to: 1.0, duration: 0.1)
+        ])) {
+            self.startThunderShakeAnimation()
+        }
+    }
+    
+    func hideThunder() {
+        thunder?.isHidden = true
+        thunder?.removeAction(forKey: "thunderShake")
+    }
+    
+    private func startThunderShakeAnimation() {
+        let shakeRight = SKAction.moveBy(x: 2, y: 0, duration: 0.05)
+        let shakeLeft = SKAction.moveBy(x: -2, y: 0, duration: 0.05)
+        let shakeUp = SKAction.moveBy(x: 0, y: 2, duration: 0.05)
+        let shakeDown = SKAction.moveBy(x: 0, y: -2, duration: 0.05)
+        
+        let shakeSequence = SKAction.sequence([
+            shakeRight, shakeLeft, shakeLeft, shakeRight,
+            shakeUp, shakeDown, shakeDown, shakeUp
+        ])
+        
+        let loopShake = SKAction.repeatForever(shakeSequence)
+        thunder?.run(loopShake, withKey: "thunderShake")
+    }
+
 }
 
 // MARK: Laser Sight

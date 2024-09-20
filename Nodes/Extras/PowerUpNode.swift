@@ -12,6 +12,7 @@ class PowerUpNode: SKShapeNode {
     enum PowerUpType {
         case laserSight
         case destructiveTouch
+        case doubleDamage
     }
     
     let type: PowerUpType
@@ -68,6 +69,9 @@ extension PowerUpNode {
         case .destructiveTouch:
             iconNode.texture = SKTexture(imageNamed: "destructive_touch")
             textureName = "destructive_touch"
+        case .doubleDamage:
+            iconNode.texture = SKTexture(imageNamed: "double_damage")
+            textureName = "double_damage"
         }
         
         guard let texture = iconNode.texture else { return }

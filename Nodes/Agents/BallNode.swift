@@ -45,13 +45,4 @@ class BallNode: SKSpriteNode {
         physicsBody?.applyImpulse(CGVector(dx: dx, dy: dy))
     }
     
-    // tbd
-    func handleCollision(with node: SKNode) {
-        switch ballType {
-        case .normal:
-            break
-        case .double:
-            break
-        }
-    }
 }

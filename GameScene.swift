@@ -45,6 +45,7 @@ class GameScene: SKScene {
     var powerUpsOnBoard: [PowerUpNode] = []
     var isLaserSightActive: Bool = false
     var isDestructiveTouchActive: Bool = false
+    var isDoubleDamageActive: Bool = false
     var remainingBalls: Int = 1
     var firstBallToHitBottom: BallNode?
     
@@ -530,7 +531,8 @@ extension GameScene {
 extension GameScene {
     func addPowerUp(at position: CGPoint) {
         let powerUpSize = CGSize(width: layoutInfo.blockSize.width * 0.8, height: layoutInfo.blockSize.height * 0.8)
-        let powerUpType: PowerUpNode.PowerUpType = Bool.random() ? .laserSight : .destructiveTouch
+//        let powerUpType: PowerUpNode.PowerUpType = [.laserSight, .destructiveTouch, .doubleDamage].randomElement()!
+        let powerUpType: PowerUpNode.PowerUpType = [.doubleDamage, .doubleDamage, .doubleDamage].randomElement()!
         let powerUp = PowerUpNode(type: powerUpType, size: powerUpSize)
         powerUp.position = position
         powerUpsOnBoard.append(powerUp)
@@ -573,6 +575,8 @@ extension GameScene {
             activateLaserSight()
         case .destructiveTouch:
             activateDestructiveTouch()
+        case .doubleDamage:
+            activateDoubleDamage()
         }
     }
     
@@ -588,7 +592,7 @@ extension GameScene {
         self.activePowerUpSlot = nil
         updatePowerUpSlots()
         
-        if let state = context.stateMachine?.currentState as? IdleState {
+        if let _ = context.stateMachine?.currentState as? IdleState {
             for slot in powerUpSlots {
                 if slot.powerUp != nil {
                     slot.dimPowerUp(isDimmed: false)
@@ -615,8 +619,6 @@ extension GameScene {
         isDestructiveTouchActive = true
         shooter.alpha = 0.5
         for block in self.blocks {
-            block.strokeColor = UIColor(hex: "E2FF33")
-            block.lineWidth = 3
             let scaleUp = SKAction.scale(to: 0.9, duration: 0.5)
             let scaleDown = SKAction.scale(to: 1.05, duration: 0.5)
             let scaleSequence = SKAction.sequence([scaleUp, scaleDown])
@@ -641,8 +643,6 @@ extension GameScene {
 
     func deactivateDestructiveTouch() {
         for block in self.blocks {
-            block.strokeColor = .clear
-            block.lineWidth = 0
             block.removeAction(forKey: "DestructiveTouchScale")
             block.setScale(1.0)
         }
@@ -661,6 +661,17 @@ extension GameScene {
         isDestructiveTouchActive = false
         deactivateActivePowerUp()
         shooter.alpha = 1.0
+    }
+    
+    func activateDoubleDamage() {
+        shooter.showThunder()
+        isDoubleDamageActive = true
+    }
+    
+    func deactivateDoubleDamage() {
+        shooter.hideThunder()
+        isDoubleDamageActive = false
+        deactivateActivePowerUp()
     }
     
     func clearPowerUps() {
@@ -716,7 +727,7 @@ extension GameScene: SKPhysicsContactDelegate {
             return
         }
 
-        blockNode.hit()
+        blockNode.hit(isDoubleDamageActive)
         
         if blockNode.hitPoints <= 0 {
             removeBlock(blockNode)

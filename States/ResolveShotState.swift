@@ -17,6 +17,9 @@ class ResolveShotState: GameState {
     }
     
     override func didEnter(from previousState: GKState?) {
+        if gameScene.isDoubleDamageActive {
+            gameScene.deactivateDoubleDamage()
+        }
         gameScene.fastForwardNode?.cancelShow()
         gameScene.gameInfo?.ballSpeedMultiplier = 1
         gameScene.fastForwardNode?.resetSpeed()
@@ -240,7 +243,7 @@ extension ResolveShotState {
                 }
             }
         
-        if numberOfBlocks < columns && Double.random(in: 0...1) < 0.05 {
+        if numberOfBlocks < columns && Double.random(in: 0...1) < 1.0 {
             dispatchGroup.enter()
             
             let emptyColumns = availableColumns[numberOfBlocks..<columns]

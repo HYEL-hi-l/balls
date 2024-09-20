@@ -67,8 +67,8 @@ class BlockNode: SKShapeNode {
         addChild(label)
     }
     
-    func hit() {
-        hitPoints -= 1
+    func hit(_ isDoubleDamageActive: Bool) {
+        hitPoints -= isDoubleDamageActive ? 2 : 1
         if hitPoints <= 0 {
             removeFromParent()
         } else {
